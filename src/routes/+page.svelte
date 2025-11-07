@@ -45,14 +45,19 @@
 {#if !user}
   <Login on:loggedin={handleLoggedIn}/>
 {:else}
-  <div style="left: 5%; bottom: 5%; position: absolute">
-  <button on:click={logout}>Log Out</button>
-  <!-- <input type="checkbox" bind:checked={invert}> -->
+  <div style="display: flex;
+  flex-direction: column;
+  min-height: 100vh;">
+    <div style="flex-grow: 1;">
+    <Question user={user} externalEntry={selectedEntry} onSaved={handleSaved} invert={invert}/>
+    <Calendar user={user} onSelectEntry={handleSelectEntry} reloadTrigger={reloadCounter} invert={invert}/>
+    </div>
+
+    <div style="display: flex;
+    justify-content: flex-start; /* align left */
+    padding-left: 5%;
+    margin-bottom: 5%;">
+    <button on:click={logout}>Log Out</button>
+    </div>
   </div>
-
-  <!-- pass selectedEntry to Question -->
-  <Question user={user} externalEntry={selectedEntry} onSaved={handleSaved} invert={invert}/>
-
-  <!-- Calendar emits onSelectEntry when a box is clicked -->
-  <Calendar user={user} onSelectEntry={handleSelectEntry} reloadTrigger={reloadCounter} invert={invert}/>
 {/if}

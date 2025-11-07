@@ -46,6 +46,20 @@ async function login() {
   }
 }
 
+function errorParser(error){
+  switch(error){
+    case "Firebase: Error (auth/invalid-credential).": 
+      return "Incorrect password or the account doesn't exist"
+    case "Firebase: Missing password requirements: [Password must contain at least 6 characters] (auth/password-does-not-meet-requirements).":
+      return "Password must contain at least 6 characters"
+    case "Firebase: Error (auth/email-already-in-use).":
+      return "This account already exists."
+    case "Firebase: Error (auth/invalid-email).":
+      return "Your username cannot have any spaces"
+    default: return error
+  }
+}
+
 </script>
 
 <div class="login">
@@ -65,11 +79,11 @@ async function login() {
       class="login_input"
       bind:value={password}
     />
-    {#if error}<p>{error}</p>{/if}
+    {#if error}<p>{errorParser(error)}</p>{/if}
     <div style="display: inline;">
       <button on:click={login}>Login</button> <button on:click={signup}>Sign up</button> 
     </div>
-      <button on:click={loginAnon}>login anonymous</button>
+      <!-- <button on:click={loginAnon}>login anonymous</button> -->
 </div>
 
 <style>

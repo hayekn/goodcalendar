@@ -92,6 +92,7 @@ button {
   cursor: pointer;
   font-family: 'Comic Sans MS', 'MyComic';
   font-size: 1rem;
+  color:black;
 }
 
 button, input[type="button"], input[type="submit"] {
