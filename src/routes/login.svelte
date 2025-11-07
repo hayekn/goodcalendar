@@ -97,11 +97,13 @@ function errorParser(error){
 }
 .login_input {
   border-bottom: 2px solid black;
-  border-top: 0px;
-  border-left: 0px;
-  border-right: 0px;
+  border-top: none;
+  border-left: none;
+  border-right: none;
   font-family: Courier, monospace;
   outline: none;
   box-shadow: none;
+  border-radius: none;
+  caret-color: black;
 }
 </style>
