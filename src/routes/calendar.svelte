@@ -18,20 +18,17 @@
 
   function valueToColor(value) {
     if (value == null) return "#fff";
-    if (invert){
-      value = 10-value
-    }
+    if (invert) value = 10 - value;
     const hue = 120 * (value / 10);
     return `hsl(${hue}, 70%, 65%)`;
   }
 
   function pad(n) {
-    return n.toString().padStart(2, '0');
+    return n.toString().padStart(2, "0");
   }
 
-
   async function loadEntries() {
-    console.log("loaded entries")
+    console.log("loaded entries");
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth(); // 0-indexed
     const today = new Date();
@@ -39,13 +36,13 @@
 
     currentMonthLabel = currentDate.toLocaleString("default", {
       month: "long",
-      year: "numeric"
+      year: "numeric",
     });
 
     const colRef = collection(db, "users", uid, "entries");
     const snap = await getDocs(colRef);
     const data = {};
-    snap.forEach(docSnap => {
+    snap.forEach((docSnap) => {
       data[docSnap.id] = docSnap.data();
     });
 
@@ -56,15 +53,22 @@
         : daysInMonth;
 
     for (let day = 1; day <= showTo; day++) {
-      const key = `${year}-${pad(month+1)}-${pad(day)}`;
+      const key = `${year}-${pad(month + 1)}-${pad(day)}`;
       const entry = data[key];
+
       temp.push({
         key,
         day,
-        filled: !!entry,
-        value: entry?.value ?? null,
-        text: entry?.text ?? null,
-        current: year === today.getFullYear() && month === today.getMonth() && day === today.getDate()
+        filledDay: entry?.valueDay != null,
+        filledNight: entry?.valueNight != null,
+        valueDay: entry?.valueDay ?? null,
+        valueNight: entry?.valueNight ?? null,
+        textDay: entry?.textDay ?? null,
+        textNight: entry?.textNight ?? null,
+        current:
+          year === today.getFullYear() &&
+          month === today.getMonth() &&
+          day === today.getDate(),
       });
     }
 
@@ -73,7 +77,7 @@
 
   function handleClick(entry) {
     selectedInfo = entry;
-    onSelectEntry(selectedInfo);
+    onSelectEntry(entry);
   }
 
   function prevMonth() {
@@ -88,7 +92,11 @@
     const today = new Date();
     const next = new Date(currentDate);
     next.setMonth(next.getMonth() + 1);
-    if (next.getFullYear() > today.getFullYear() || (next.getFullYear() === today.getFullYear() && next.getMonth() > today.getMonth())) {
+    if (
+      next.getFullYear() > today.getFullYear() ||
+      (next.getFullYear() === today.getFullYear() &&
+        next.getMonth() > today.getMonth())
+    ) {
       return;
     }
     currentDate = next;
@@ -100,9 +108,11 @@
   onMount(loadEntries);
 </script>
 
-<div class="month-nav" style="display:flex; align-items:center; justify-content:center; gap:1rem; margin-top:5rem;">
-  <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">←</button>
-  <p style="margin: 0; font-size: 1.2rem">{currentMonthLabel}</p>
+<div class="month-nav">
+  <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">
+    ←
+  </button>
+  <p>{currentMonthLabel}</p>
   <button
     class="nav-btn"
     on:click={nextMonth}
@@ -116,41 +126,69 @@
   </button>
 </div>
 
-<div class="calendar" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; max-width:350px; margin:1rem auto 2rem auto;">
+<div class="calendar">
   {#each entries as e}
     <div
       class="day"
-      style={
-        (e.value >= 10
+      style={e.current ? "border: 1.5px solid #333;" : ""}
+    >
+      <div class="day-number">{e.day}</div>
+
+      <div
+        class="day-half top-half"
+        style={
+        (e.valueDay >= 10
           ? `background: url('${sparkles}'); background-size: cover;`
-          : `background-color: ${valueToColor(e.value)};`) +
-        (e.current ? ' border: 1.5px solid #333;' : '')
-      }
-      on:click={() => handleClick(e)}    >
-      {e.day}
+          : `background-color: ${valueToColor(e.valueDay)};`)
+        }
+        on:click={() => handleClick({ ...e, period: 'day' })}
+      ></div>
+      <div
+        class="day-half bottom-half"
+        style={
+        (e.valueNight >= 10
+          ? `background: url('${sparkles}'); background-size: cover;`
+          : `background-color: ${valueToColor(e.valueNight)};`)
+        }
+        on:click={() => handleClick({ ...e, period: 'night' })}
+      ></div>
     </div>
   {/each}
 </div>
 
-{#if selectedInfo}
-  <div
-    class="entry-info"
-    style="max-width:350px; margin:0rem auto; padding:0.5rem; background:#f0f0f0; border-radius:6px; text-align:center; font-size:0.9rem;"
-  >
+{#if selectedInfo && 
+!((selectedInfo.period==="day" && !selectedInfo.filledDay && selectedInfo.current) ||
+(selectedInfo.period==="night" && !selectedInfo.filledNight && selectedInfo.current))
+}
+  <div class="entry-info">
     <strong>
-      {new Date(new Date(selectedInfo.key).setHours(24,0,0,0)).toLocaleDateString("default",
-       {month: "short",
-        day: "numeric"}
-      )}
+      {new Date(new Date(selectedInfo.key).setHours(24,0,0,0)).toLocaleDateString("default", 
+      {month: "short", day: "numeric"} 
+      )} {selectedInfo.period === "day" ? "Day" : "Night"}
     </strong>
-    {#if selectedInfo.value}
-      — {selectedInfo.value}/10
-    {/if}<br>
-    <i>{selectedInfo.text || "No Entry"}</i>
+    {#if selectedInfo.period === "day"}
+        {#if selectedInfo.filledDay}
+          — {selectedInfo.valueDay}/10
+        {/if} <br>
+          <i>{selectedInfo.textDay || "No Entry"}</i>
+    {:else}
+        {#if selectedInfo.filledNight}
+          — {selectedInfo.valueNight}/10
+        {/if} <br>
+      <i>{selectedInfo.textNight || "No Entry"}</i>
+    {/if}
   </div>
 {/if}
 
 <style>
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 5rem;
+  }
+
   .nav-btn {
     border: none;
     background: #eee;
@@ -159,19 +197,61 @@
     cursor: pointer;
     font-size: 1rem;
   }
-  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    max-width: 350px;
+    margin: 1rem auto 2rem auto;
+  }
 
   .day {
+    position: relative;
     border: 1px solid #ccc;
     border-radius: 6px;
     height: 50px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    transition: all .12s ease;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+    display: flex;
+    flex-direction: column;
   }
-  .day:hover { transform:translateY(-.2rem); background: #f0f0f0; }
 
-  .entry-info { /* inline styles above, keep here if you want to tweak */ }
+  .day:hover {
+    transform: translateY(-0.2rem);
+  }
+
+  .day-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .day-half {
+    flex: 1;
+    width: 100%;
+  }
+
+  .top-half {
+    border-bottom: .75px dashed rgba(0, 0, 0, 0.15);
+  }
+
+  .entry-info {
+    max-width: 350px;
+    margin: 0 auto;
+    padding: 0.5rem;
+    background: #f0f0f0;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
 </style>

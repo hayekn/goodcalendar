@@ -52,7 +52,7 @@ async function login() {
   <br>
   <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
   -webkit-background-clip: text; -webkit-text-fill-color: transparent">The Good Calendar</h2>
-  <p>Here, you can log the quality of your days for posterity. Dedicated to my girlfriend and her chronic migranes.</p>
+  <p>Here, you can log the quality of your days and nights for posterity. Dedicated to my girlfriend and her chronic migranes.</p>
     <input
       type="text"
       placeholder="Username"

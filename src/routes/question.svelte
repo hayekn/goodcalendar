@@ -21,20 +21,34 @@
 
   let uid = user.uid;
   if (user.email){
-    name = user.email.replace("@tracker.app", "");
+    name = user.email.replace("@tracker.app", "").charAt(0).toUpperCase()+
+           user.email.replace("@tracker.app", "").slice(1);
   } else {
     name = "Temp"
   }
 
-  // key for today's date (YYYY-MM-DD)
   let key = `${year}-${pad(month+1)}-${pad(day)}`;
-
   let value = 5;
   let text = "";
+  let period = ""
   let locked = false;
   let showGif = "";
   let saved = false;
   let sliderColor = "";
+  let checkBackTomorrow = "";
+
+
+  const currentHour = new Date().getHours();
+  let defaultPeriod = currentHour < 12 ? "day" : "night";
+  $: if (!externalEntry) {
+  externalEntry = {
+    key,
+    period: defaultPeriod,
+    current: true,
+    filledDay: false,
+    filledNight: false,
+  };
+  } 
 
   function valueToColor(value) {
     if (invert){
@@ -51,23 +65,30 @@
   async function checkToday() {
     const ref = doc(db, "users", uid, "entries", key);
     const entry = await getDoc(ref);
-    if (entry.exists()) {
+    console.log(entry.data())
+    if (entry.exists() && entry.data().valueDay && entry.data().valueNight) {
       locked = true;
+      checkBackTomorrow = "Check again tomorrow"
     }
   }
 
-  async function save() {
+  async function save(period) {
     if (locked) return;
     saved = true;
     locked = true;
 
     const ref = doc(db, "users", uid, "entries", key);
-    await setDoc(ref, { value, text, timestamp: Date.now() });
 
-    if (externalEntry) {
-      externalEntry.filled = true;
-      externalEntry.value = value;
-      externalEntry.text = text;
+    if (period==="day"){
+      await setDoc(ref, { valueDay:value, textDay:text, timestamp:Date.now() }, {merge: true});
+      if (externalEntry.filledNight){
+        checkBackTomorrow = "Check again tomorrow"
+      }
+    } else {
+      await setDoc(ref, {  valueNight:value, textNight:text, timestamp:Date.now() }, {merge: true});
+      if (externalEntry.filledDay){
+        checkBackTomorrow = "Check again tomorrow"
+      }
     }
 
     value = 5;
@@ -82,21 +103,20 @@
   onMount(checkToday);
 
   $: if (externalEntry) {
-    // const today = new Date().toISOString().split("T")[0];
-
-    if (!externalEntry.current && externalEntry.filled) {
+    let filled = (externalEntry.period==="day" && externalEntry.filledDay) ||
+                 (externalEntry.period==="night" && externalEntry.filledNight)
+    if (!externalEntry.current && filled) {
       // Past day, filled
       locked = true;
-    } else if (!externalEntry.current && !externalEntry.filled) {
+    } else if (!externalEntry.current && !filled) {
       // Past day, empty
       locked = true;
-    } else if (externalEntry.current && externalEntry.filled) {
+    } else if (externalEntry.current && filled) {
       // Today, already filled
       locked = true;
-    } else if (externalEntry.current && !externalEntry.filled) {
+    } else if (externalEntry.current && !filled) {
       // Today, not yet filled
       locked = false;
-      key = externalEntry.key;
     }
   }
 
@@ -107,18 +127,31 @@
 
 {#if saved}
   <div class="overlay">
-    <h2>Come back tomorrow!</h2>
+    {#if (externalEntry.period==="day" && !externalEntry.filledNight)}
+    <h3>Entry logged!</h3>
+    {:else if (externalEntry.period==="night" && !externalEntry.filledDay)}
+    <h3 style="margin: 0px;">Entry logged!</h3>
+    <h4>You can still log your day.</h4>
+    {:else}
+    <h3 style="margin: 0px;">Entry logged!</h3>
+    <h4>Check again tomorrow.</h4>
+    {/if}
     <button on:click={reset}>Return</button>
   </div>
 {:else}
   {#if locked}
   <br>
     <div class="question">
-      <h3 style="margin: 0px;">Welcome {name}! Viewing past entries.</h3>
+      <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px">Welcome {name}!</h2>
+      <h3 style="margin-top: .25rem; font-style: italic;">{checkBackTomorrow || "Viewing past entries"}</h3>
     </div>
   {:else}
     <div class="question">
-      <h3>Welcome {name}! Rate Your Day:</h3>
+      <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px">
+      Welcome {name}!</h2>
+      <h3 style="margin-top: .25rem; font-style: italic;">Rate your {externalEntry.period==="day" ? "day" : "night"}</h3>
       <input
         type="range"
         min="0"
@@ -130,7 +163,7 @@
         style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}"
       />
       <textarea bind:value={text} placeholder="Optional notes..."></textarea><br>
-      <button on:click={save} disabled={locked}>Save ({value.toFixed(1)}/10)</button>
+      <button on:click={() => save(externalEntry.period)} disabled={locked}>Save ({value.toFixed(1)}/10)</button>
     </div>
   {/if}
 {/if}
