@@ -56,6 +56,8 @@ function errorParser(error){
       return "This account already exists."
     case "Firebase: Error (auth/invalid-email).":
       return "Your username cannot have any spaces"
+    case "Firebase: Error (auth/missing-password).":
+      return "Missing password"
     default: return error
   }
 }
