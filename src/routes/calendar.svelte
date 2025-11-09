@@ -28,7 +28,7 @@
   }
 
   async function loadEntries() {
-    console.log("loaded entries");
+    console.log("Loaded calendar entries");
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth(); // 0-indexed
     const today = new Date();
@@ -78,6 +78,7 @@
   function handleClick(entry) {
     selectedInfo = entry;
     onSelectEntry(entry);
+    console.log("Selected "+entry.key)
   }
 
   function prevMonth() {
@@ -248,6 +249,7 @@
   .entry-info {
     max-width: 350px;
     margin: 0 auto;
+    margin-bottom: 2rem;
     padding: 0.5rem;
     background: #f0f0f0;
     border-radius: 6px;

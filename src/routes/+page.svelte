@@ -54,7 +54,7 @@
     </div>
 
     <div style="display: flex;
-    justify-content: flex-start; /* align left */
+    justify-content: flex-start;
     padding-left: 5%;
     margin-bottom: 5%;">
     <button on:click={logout}>Log Out</button>

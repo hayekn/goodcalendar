@@ -37,10 +37,14 @@
   let sliderColor = "";
   let checkBackTomorrow = "";
 
+  let override = false; 
+
 
   const currentHour = new Date().getHours();
-  let defaultPeriod = currentHour < 12 ? "day" : "night";
+  let defaultPeriod = currentHour < 16 ? "day" : "night";
+
   $: if (!externalEntry) {
+    console.log("Selection reset to today (at "+defaultPeriod+")")
   externalEntry = {
     key,
     period: defaultPeriod,
@@ -72,25 +76,25 @@
     }
   }
 
-  async function save(period) {
-    if (locked) return;
+  async function save(entry) {
+    if (locked && !override) return;
     saved = true;
     locked = true;
 
-    const ref = doc(db, "users", uid, "entries", key);
+    const ref = doc(db, "users", uid, "entries", entry.key);
 
-    if (period==="day"){
+    if (entry.period==="day"){
       await setDoc(ref, { valueDay:value, textDay:text, timestamp:Date.now() }, {merge: true});
-      if (externalEntry.filledNight){
+      if (entry.filledNight){
         checkBackTomorrow = "Check again tomorrow"
       }
     } else {
       await setDoc(ref, {  valueNight:value, textNight:text, timestamp:Date.now() }, {merge: true});
-      if (externalEntry.filledDay){
+      if (entry.filledDay){
         checkBackTomorrow = "Check again tomorrow"
       }
     }
-
+    console.log("Logged " +entry.key+" at "+entry.period)
     value = 5;
     text = "";
     onSaved();
@@ -136,10 +140,10 @@
     <h3 style="margin: 0px;">Entry logged!</h3>
     <h4>Check again tomorrow.</h4>
     {/if}
-    <button on:click={reset}>Return</button>
+    <button onclick={reset}>Return</button>
   </div>
 {:else}
-  {#if locked}
+  {#if locked && !override}
   <br>
     <div class="question">
       <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
@@ -158,15 +162,17 @@
         max="10"
         step="0.1"
         bind:value={value}
-        disabled={locked}
+        disabled={locked && !override}
         class={showGif}
         style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}"
       />
       <textarea bind:value={text} placeholder="Optional notes..."></textarea><br>
-      <button on:click={() => save(externalEntry.period)} disabled={locked}>Save ({value.toFixed(1)}/10)</button>
+      <button onclick={() => save(externalEntry)} disabled={locked && !override}>Save ({value.toFixed(1)}/10)</button>
     </div>
   {/if}
 {/if}
+
+<button class="hiddencheck" ondblclick={() => {console.log("Activated override!"); override=!override}}></button>
 
 <style>
 .overlay {
@@ -182,5 +188,11 @@
 }
 .overlay h2 {
   margin-bottom: 1rem;
+}
+.hiddencheck {
+  opacity: 0;
+  right: 2%;
+  top: 2%;
+  position: absolute;
 }
 </style>

@@ -76,7 +76,7 @@ function errorParser(error){
       class="login_input"
     />
     <input
-      type="text"
+      type="password"
       placeholder="Password"
       class="login_input"
       bind:value={password}
@@ -85,7 +85,7 @@ function errorParser(error){
     <div style="display: inline;">
       <button on:click={login}>Login</button> <button on:click={signup}>Sign up</button> 
     </div>
-      <!-- <button on:click={loginAnon}>login anonymous</button> -->
+      <button on:click={loginAnon}>login anonymous</button>
 </div>
 
 <style>
@@ -105,7 +105,11 @@ function errorParser(error){
   font-family: Courier, monospace;
   outline: none;
   box-shadow: none;
-  border-radius: none;
+  border-radius: 0;
   caret-color: black;
+}
+
+input[type="search"] {
+  -webkit-appearance: none;
 }
 </style>

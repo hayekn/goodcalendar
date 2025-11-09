@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// 🔥 replace with your Firebase project info
 const firebaseConfig = {
   apiKey: "AIzaSyCVOWRz48Jz9lT1in3tIqVGDosmMlEmcq0",
   authDomain: "tracker-92901.firebaseapp.com",
