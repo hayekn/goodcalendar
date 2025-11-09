@@ -15,10 +15,10 @@
   let selectedInfo = null;
   let currentDate = new Date();
   let currentMonthLabel = "";
+  let showGif = "";
 
   function valueToColor(value) {
     if (value == null) return "#fff";
-    if (invert) value = 10 - value;
     const hue = 120 * (value / 10);
     return `hsl(${hue}, 70%, 65%)`;
   }
@@ -106,6 +106,14 @@
   }
 
   $: if (reloadTrigger) loadEntries();
+  // $: if (invert) {showGif = ""(e.valueDay >= 10
+  //         ? `background: url('${sparkles}'); background-size: cover;`
+  //         : `background-color: ${valueToColor(e.valueDay)};`)""}
+
+    // else {showGif = e.valueNight >= 10 ? "background: url('${sparkles}'); background-size: cover;" : 
+    // "background-color: ${valueToColor(e.valueDay)};";}
+
+  // $: if (invert || value) sliderColor = valueToColor(value);
   onMount(loadEntries);
 </script>
 
@@ -138,25 +146,29 @@
       <div
         class="day-half top-half"
         style={
-        (e.valueDay >= 10
+        ((!invert && e.valueDay==10)
           ? `background: url('${sparkles}'); background-size: cover;`
-          : `background-color: ${valueToColor(e.valueDay)};`)
+          : (invert && e.valueDay==0) ? `background: url('${sparkles}'); background-size: cover;`
+          : `background-color: ${valueToColor((e.valueDay!=null && !invert) ? e.valueDay : 
+          (e.valueDay != null) ? 10 - e.valueDay : null )};`)
         }
         on:click={() => handleClick({ ...e, period: 'day' })}
       ></div>
       <div
         class="day-half bottom-half"
         style={
-        (e.valueNight >= 10
+        ((!invert && e.valueNight==10)
           ? `background: url('${sparkles}'); background-size: cover;`
-          : `background-color: ${valueToColor(e.valueNight)};`)
+          : (invert && e.valueNight==0) ? `background: url('${sparkles}'); background-size: cover;`
+          : `background-color: ${valueToColor((e.valueNight!=null && !invert) ? e.valueNight : 
+          (e.valueNight != null) ? 10 - e.valueNight : null )};`)
         }
         on:click={() => handleClick({ ...e, period: 'night' })}
       ></div>
     </div>
   {/each}
 </div>
-
+<!-- (e.valueNight!=null && !invert) ? e.valueNight : e.valueNight ? 10 - e.valueNight : null -->
 {#if selectedInfo && 
 !((selectedInfo.period==="day" && !selectedInfo.filledDay && selectedInfo.current) ||
 (selectedInfo.period==="night" && !selectedInfo.filledNight && selectedInfo.current))

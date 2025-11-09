@@ -124,8 +124,8 @@
     }
   }
 
-  $: if (invert) {showGif = value <= 0 ? "celebrate" : "none";}
-    else {showGif = value >= 10 ? "celebrate" : "none";}
+  $: if (invert) {showGif = value <= 0 ? "celebrate" : "";}
+    else {showGif = value >= 10 ? "celebrate" : "";}
   $: if (invert || value) sliderColor = valueToColor(value);
 </script>
 
