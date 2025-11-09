@@ -117,7 +117,7 @@
       locked = true;
     } else if (externalEntry.current && filled) {
       // Today, already filled
-      locked = true;
+      locked = false;
     } else if (externalEntry.current && !filled) {
       // Today, not yet filled
       locked = false;
@@ -175,20 +175,6 @@
 <button class="hiddencheck" ondblclick={() => {console.log("Activated override!"); override=!override}}></button>
 
 <style>
-.overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #fefefe;
-  text-align: center;
-  z-index: 100;
-}
-.overlay h2 {
-  margin-bottom: 1rem;
-}
 .hiddencheck {
   opacity: 0;
   right: 2%;

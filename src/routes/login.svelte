@@ -11,11 +11,12 @@
   let name = ""
   let password = "";
   let error = "";
+  let passType = true;
 
   async function loginAnon() {
     try {
       const userCredential = await signInAnonymously(auth);
-      dispatch("loggedin", { uid: userCredential.user.uid});
+      // dispatch("loggedin", { uid: userCredential.user.uid});
     } catch (err) {
       console.error(err.code, err.message);
       alert(err.message);
@@ -27,7 +28,7 @@
   try {
     const email = `${name}@tracker.app`;
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    dispatch("loggedin", { uid: userCredential.user.uid });
+    // dispatch("loggedin", { uid: userCredential.user.uid });
   } catch (err) {
     console.error(err);
     error = err.message;
@@ -39,7 +40,7 @@ async function login() {
   try {
     const email = `${name}@tracker.app`;
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    dispatch("loggedin", { uid: userCredential.user.uid });
+    // dispatch("loggedin", { uid: userCredential.user.uid });
   } catch (err) {
     console.error(err);
     error = err.message;
@@ -67,25 +68,55 @@ function errorParser(error){
 <div class="login">
   <br>
   <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent">The Good Calendar</h2>
-  <p>Here, you can log the quality of your days and nights for posterity. Dedicated to my girlfriend and her chronic migranes.</p>
-    <input
-      type="text"
-      placeholder="Username"
-      bind:value={name}
-      class="login_input"
-    />
-    <input
-      type="password"
-      placeholder="Password"
-      class="login_input"
-      bind:value={password}
-    />
-    {#if error}<p>{errorParser(error)}</p>{/if}
-    <div style="display: inline;">
-      <button on:click={login}>Login</button> <button on:click={signup}>Sign up</button> 
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px">The Good Calendar</h2>
+  <p style="text-align: center; margin-top: 0px">Here, you can log the quality of your days and nights for posterity. Dedicated to my girlfriend and her chronic migranes.</p>
+  <div style="top: 3rem; position:relative">
+    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+      <input
+        type="text"
+        placeholder="Username"
+        bind:value={name}
+        class="login_input"
+        style="width: 200px;"
+      />
+      <div style="display: flex; align-items: center; position: relative;">
+        <input
+          type={passType ? "password" : "text"}
+          placeholder="Password"
+          class="login_input"
+          bind:value={password}
+          style="width: 200px;"
+        />
+        <button
+          style="
+            position: absolute;
+            right: -45px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 10%;
+            font-size: 0.75rem;
+            padding: 0.1rem 0.25rem;
+            white-space: nowrap;
+          "
+          on:click={() => (passType = !passType)}
+          >
+          {passType ? "show" : "hide"}
+        </button>
+      </div>
     </div>
-      <button on:click={loginAnon}>login anonymous</button>
+  </div>
+  <div style="top: 3rem; position:relative">
+    <div style="align-items: center">
+      <button on:click={login}>Login</button>
+      <button on:click={signup}>Sign up</button>
+    </div>
+  </div>
+  <div style="top: 3rem; position:relative">
+  {#if error}
+        {errorParser(error)}
+  {/if}
+  </div>
+    <!-- <button on:click={loginAnon}>login anonymous</button> -->
 </div>
 
 <style>
