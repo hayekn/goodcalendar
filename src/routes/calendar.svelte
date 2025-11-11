@@ -29,8 +29,13 @@
 
   async function loadEntries() {
     console.log("Loaded calendar entries");
+    // todays date
     const year = currentDate.getFullYear();
-    const month = currentDate.getMonth(); // 0-indexed
+    const month = currentDate.getMonth();
+
+    const currentHour = new Date().getHours();
+    const defaultPeriod = currentHour < 16 ? "day" : "night";
+    
     const today = new Date();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -55,8 +60,11 @@
     for (let day = 1; day <= showTo; day++) {
       const key = `${year}-${pad(month + 1)}-${pad(day)}`;
       const entry = data[key];
+      const current = (year === today.getFullYear() &&
+                      month === today.getMonth() &&
+                      day === today.getDate())
 
-      temp.push({
+      const loadedEntry = {
         key,
         day,
         filledDay: entry?.valueDay != null,
@@ -65,11 +73,16 @@
         valueNight: entry?.valueNight ?? null,
         textDay: entry?.textDay ?? null,
         textNight: entry?.textNight ?? null,
-        current:
-          year === today.getFullYear() &&
-          month === today.getMonth() &&
-          day === today.getDate(),
-      });
+        current: current
+      }
+
+      // when init, select current day
+      if (current && selectedInfo===null){
+          loadedEntry.period = defaultPeriod;
+          handleClick(loadedEntry);
+      }
+
+      temp.push(loadedEntry);
     }
 
     entries = temp;
@@ -106,14 +119,7 @@
   }
 
   $: if (reloadTrigger) loadEntries();
-  // $: if (invert) {showGif = ""(e.valueDay >= 10
-  //         ? `background: url('${sparkles}'); background-size: cover;`
-  //         : `background-color: ${valueToColor(e.valueDay)};`)""}
 
-    // else {showGif = e.valueNight >= 10 ? "background: url('${sparkles}'); background-size: cover;" : 
-    // "background-color: ${valueToColor(e.valueDay)};";}
-
-  // $: if (invert || value) sliderColor = valueToColor(value);
   onMount(loadEntries);
 </script>
 
@@ -139,7 +145,13 @@
   {#each entries as e}
     <div
       class="day"
-      style={e.current ? "border: 1.5px solid #333;" : ""}
+      style={(e.current ? "border: 1.5px solid #333;" : "")+
+            (
+            (selectedInfo != null && selectedInfo.key===e.key && selectedInfo.period === "day") 
+            ? "border-top: 2.5px solid #339FFF" : selectedInfo != null && selectedInfo.key===e.key 
+            ? "border-bottom: 2.5px solid #339FFF" : ""
+            )
+            }
     >
       <div class="day-number">{e.day}</div>
 
@@ -154,6 +166,7 @@
         }
         on:click={() => handleClick({ ...e, period: 'day' })}
       ></div>
+
       <div
         class="day-half bottom-half"
         style={
@@ -209,6 +222,11 @@
     padding: 0.3rem 0.6rem;
     cursor: pointer;
     font-size: 1rem;
+    transition: 50ms;
+  }
+  .nav-btn:hover {
+    background-color: #ccc;
+    transition: 50ms;
   }
   .nav-btn:disabled {
     opacity: 0.4;

@@ -36,28 +36,11 @@
   let saved = false;
   let sliderColor = "";
   let checkBackTomorrow = "";
-
   let override = false; 
 
 
-  const currentHour = new Date().getHours();
-  let defaultPeriod = currentHour < 16 ? "day" : "night";
-
-  $: if (!externalEntry) {
-    console.log("Selection reset to today (at "+defaultPeriod+")")
-  externalEntry = {
-    key,
-    period: defaultPeriod,
-    current: true,
-    filledDay: false,
-    filledNight: false,
-  };
-  } 
-
   function valueToColor(value) {
-    if (invert){
-      value = 10-value
-    }
+    if (invert) value = 10-value;
     const hue = 120 * (value / 10);
     return `hsl(${hue}, 70%, 65%)`;
   }
@@ -66,37 +49,28 @@
     return value / 10;
   }
 
-  async function checkToday() {
-    const ref = doc(db, "users", uid, "entries", key);
-    const entry = await getDoc(ref);
-    console.log(entry.data())
-    if (entry.exists() && entry.data().valueDay && entry.data().valueNight) {
-      locked = true;
-      checkBackTomorrow = "Check again tomorrow"
-    }
-  }
-
   async function save(entry) {
     if (locked && !override) return;
     saved = true;
-    locked = true;
 
     const ref = doc(db, "users", uid, "entries", entry.key);
-
     if (entry.period==="day"){
       await setDoc(ref, { valueDay:value, textDay:text, timestamp:Date.now() }, {merge: true});
       if (entry.filledNight){
-        checkBackTomorrow = "Check again tomorrow"
+        checkBackTomorrow = "Come back tomorrow!"
       }
     } else {
       await setDoc(ref, {  valueNight:value, textNight:text, timestamp:Date.now() }, {merge: true});
       if (entry.filledDay){
-        checkBackTomorrow = "Check again tomorrow"
+        checkBackTomorrow = "Come back tomorrow!"
       }
     }
     console.log("Logged " +entry.key+" at "+entry.period)
+
     value = 5;
     text = "";
+
+    // signals change to calendar via main page
     onSaved();
   }
 
@@ -104,24 +78,23 @@
     saved = false;
   }
 
-  onMount(checkToday);
-
   $: if (externalEntry) {
     let filled = (externalEntry.period==="day" && externalEntry.filledDay) ||
                  (externalEntry.period==="night" && externalEntry.filledNight)
     if (!externalEntry.current && filled) {
-      // Past day, filled
+      // past day, filled
       locked = true;
     } else if (!externalEntry.current && !filled) {
-      // Past day, empty
+      // past day, empty
       locked = true;
-    } else if (externalEntry.current && filled) {
-      // Today, already filled
+    } else if (externalEntry.current) {
+      // today
       locked = false;
-    } else if (externalEntry.current && !filled) {
-      // Today, not yet filled
-      locked = false;
+      
+      text = (externalEntry.period==="day" ? externalEntry.textDay : externalEntry.textNight)
+      value = (externalEntry.period==="day" ? externalEntry.valueDay : externalEntry.valueNight) || 5
     }
+    
   }
 
   $: if (invert) {showGif = value <= 0 ? "celebrate" : "";}
@@ -129,6 +102,9 @@
   $: if (invert || value) sliderColor = valueToColor(value);
 </script>
 
+
+<!-- wait till external entry is loaded from calendar, then show -->
+{#if externalEntry}
 {#if saved}
   <div class="overlay">
     {#if (externalEntry.period==="day" && !externalEntry.filledNight)}
@@ -138,7 +114,7 @@
     <h4>You can still log your day.</h4>
     {:else}
     <h3 style="margin: 0px;">Entry logged!</h3>
-    <h4>Check again tomorrow.</h4>
+    <h4>Come back tomorrow!</h4>
     {/if}
     <button onclick={reset}>Return</button>
   </div>
@@ -170,6 +146,7 @@
       <button onclick={() => save(externalEntry)} disabled={locked && !override}>Save ({value.toFixed(1)}/10)</button>
     </div>
   {/if}
+{/if}
 {/if}
 
 <button class="hiddencheck" ondblclick={() => {console.log("Activated override!"); override=!override}}></button>

@@ -94,6 +94,12 @@ button {
   font-size: 1rem;
   color:black;
   -webkit-appearance: none;
+  transition: 50ms;
+}
+
+button:hover{
+  background-color: #ccc;
+  transition: 50ms;
 }
 
 button, input[type="button"], input[type="submit"] {
