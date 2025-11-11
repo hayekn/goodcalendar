@@ -19,11 +19,13 @@
   let hint = false;
 
 
-  let selected = "Calendar 1";
+  let selectedCalendar = 0;
   let newCalendar = "";
   let renameCalendar = "";
-  let calendars = ["Calendar 1"]
+  let calendars = ["Calendar 1", "Calendar 2", "Calendar 3"]
   let currIndex = 0;
+
+  let menu = false;
 
   onAuthStateChanged(auth, (u) => {
     loadColorPreference(u);
@@ -39,50 +41,50 @@
   }
 
 
-  function handleSelectCalendar(event) {
-    if (event.target.selectedIndex < calendars.length)
-      {console.log("changed");
-      currIndex = event.target.selectedIndex;}
+  // function handleSelectCalendar(event) {
+  //   if (event.target.selectedIndex < calendars.length)
+  //     {console.log("changed");
+  //     currIndex = event.target.selectedIndex;}
 
-    console.log("current = "+currIndex);
-  }
-  async function saveNewCalendar(){
-    if (!user) return;
-    selected=newCalendar; 
-    calendars = [...calendars, newCalendar];  
-    const ref = doc(db, "users", user.uid);
-    await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
-    console.log("Saved "+newCalendar+" to calendars");
-    newCalendar="";
-    currIndex = calendars.length-1;
+  //   console.log("current = "+currIndex);
+  // }
+  // async function saveNewCalendar(){
+  //   if (!user) return;
+  //   selected=newCalendar; 
+  //   calendars = [...calendars, newCalendar];  
+  //   const ref = doc(db, "users", user.uid);
+  //   await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
+  //   console.log("Saved "+newCalendar+" to calendars");
+  //   newCalendar="";
+  //   currIndex = calendars.length-1;
 
-    console.log("current = "+currIndex);
-  }
-  async function saveRenameCalendar(){
-    if (!user) return;
-    calendars[currIndex] = renameCalendar;
-    calendars = [...calendars];
-    selected=renameCalendar;
+  //   console.log("current = "+currIndex);
+  // }
+  // async function saveRenameCalendar(){
+  //   if (!user) return;
+  //   calendars[currIndex] = renameCalendar;
+  //   calendars = [...calendars];
+  //   selected=renameCalendar;
 
-    console.log("current = "+currIndex);
-    // const ref = doc(db, "users", user.uid);
-    // await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
-    // console.log("Saved "+newCalendar+" to calendars");
-    // newCalendar="";
-  }
+  //   console.log("current = "+currIndex);
+  //   // const ref = doc(db, "users", user.uid);
+  //   // await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
+  //   // console.log("Saved "+newCalendar+" to calendars");
+  //   // newCalendar="";
+  // }
 
-    async function saveDeleteCalendar(){
-    if (!user) return;
-    calendars.splice(currIndex);
-    calendars = [...calendars];
-    selected = calendars[currIndex]
+  //   async function saveDeleteCalendar(){
+  //   if (!user) return;
+  //   calendars.splice(currIndex);
+  //   calendars = [...calendars];
+  //   selected = calendars[currIndex]
 
-    console.log("current = "+currIndex);
-    // const ref = doc(db, "users", user.uid);
-    // await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
-    // console.log("Saved "+newCalendar+" to calendars");
-    // newCalendar="";
-  }
+  //   console.log("current = "+currIndex);
+  //   // const ref = doc(db, "users", user.uid);
+  //   // await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
+  //   // console.log("Saved "+newCalendar+" to calendars");
+  //   // newCalendar="";
+  // }
 
 
 
@@ -147,6 +149,26 @@
       </div>
       {#if invert!=null} 
       <div>
+        <!-- <button on:click={menu=!menu}
+        style="padding: .4rem inherit;">
+          Calendars
+        </button> -->
+        {#if menu}
+          <div class="overlay">
+            <span>
+            {#each calendars as calendar, i}
+              <button on:click={selectedCalendar=i}
+              style={selectedCalendar===i ? "border: 2px dashed #339FFF;" : ""+("margin: .5rem")}>{calendar}</button>
+            {/each}
+            </span><br>
+            <span>
+            <button on:click={() => {renameCalendar(i)}}>Rename</button>
+            <button on:click={() => {deleteCalendar(i)}}>Delete</button>
+            <button on:click={() => {addCalendar(i)}}>New</button>
+            </span><br>
+            <button on:click={menu=!menu}>Return</button>
+          </div>
+        {/if}
         <!-- <select style="padding: .4rem inherit;" id="selector"
         bind:value={selected} on:change={(event) => {console.log(selected); handleSelectCalendar(event)}}>
           {#each calendars as calendar}
