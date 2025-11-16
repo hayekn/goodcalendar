@@ -9,6 +9,7 @@
   export let onSelectEntry = (entry) => {};
   export let reloadTrigger = 0;
   export let invert;
+  export let selectedCalendar;
 
   let uid = user.uid;
   let entries = [];
@@ -44,7 +45,7 @@
       year: "numeric",
     });
 
-    const colRef = collection(db, "users", uid, "entries");
+    const colRef = collection(db, "users", uid, selectedCalendar); //prev "entries"
     const snap = await getDocs(colRef);
     const data = {};
     snap.forEach((docSnap) => {
@@ -119,6 +120,7 @@
   }
 
   $: if (reloadTrigger) loadEntries();
+  $: if (selectedCalendar) {loadEntries(); selectedInfo = null}
 
   onMount(loadEntries);
 </script>
@@ -145,14 +147,17 @@
   {#each entries as e}
     <div
       class="day"
-      style={(e.current ? "border: 1.5px solid #333;" : "")+
+      style={(e.current ? "border: 1.5px solid #6E6E6E;" : "")+
             (
             (selectedInfo != null && selectedInfo.key===e.key && selectedInfo.period === "day") 
-            ? "border-top: 2.5px solid #339FFF" : selectedInfo != null && selectedInfo.key===e.key 
-            ? "border-bottom: 2.5px solid #339FFF" : ""
+            ? "border-top: 2.5px solid #6BCBFF;" : selectedInfo != null && selectedInfo.key===e.key 
+            ? "border-bottom: 2.5px solid #0077BA;" : ""
             )
             }
     >
+    <!-- 6BE0FF 339FFF -->
+     <!-- 0077BA 4E2FD4-->
+
       <div class="day-number">{e.day}</div>
 
       <div

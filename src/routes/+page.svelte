@@ -4,31 +4,35 @@
   import Calendar from "./calendar.svelte";
 
   import { auth, db } from "../firebase.js";
-  import { onAuthStateChanged, signOut } from "firebase/auth";
-  import { doc, getDoc, setDoc } from 'firebase/firestore';
+  import { onAuthStateChanged, signOut, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+  import { doc, getDoc, setDoc, updateDoc, waitForPendingWrites } from 'firebase/firestore';
 
   import '../app.css';
   import { onMount } from "svelte";
 
   import lightbulb from "$lib/lightbulb-regular.svg"
+    import { error } from "@sveltejs/kit";
 
   let user = null;
   let selectedEntry = null;
+
   let reloadCounter = 0;
   let invert = null;
   let hint = false;
 
-
-  let selectedCalendar = 0;
-  let newCalendar = "";
-  let renameCalendar = "";
-  let calendars = ["Calendar 1", "Calendar 2", "Calendar 3"]
+  let calendars = null;
+  let selectedCalendar = null;
+  let newCal = "";
+  let renamedCal = "";
+  let overlaySelector = "";
   let currIndex = 0;
+  let password = ""
+  let errormsg = ""
 
   let menu = false;
 
   onAuthStateChanged(auth, (u) => {
-    loadColorPreference(u);
+    loadUserData(u);
     user = u;
   });
 
@@ -40,55 +44,75 @@
     console.log("Saved user profile invert="+invert)
   }
 
+  function renameCalendar(){
+    if (renamedCal===""){
+      errormsg = "New name cannot be empty!";
+    }
+    else if (Object.values(calendars).includes(renamedCal)){
+      errormsg = "New name cannot be a duplicate!";
+    } 
+    else {
+      calendars[selectedCalendar]=renamedCal;
+      updateCalendars();
 
-  // function handleSelectCalendar(event) {
-  //   if (event.target.selectedIndex < calendars.length)
-  //     {console.log("changed");
-  //     currIndex = event.target.selectedIndex;}
+      renamedCal="";
+      errormsg = "";
+      overlaySelector="";
+    }
+  }
+  function deleteCalendar(){
+    reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password)).then(() => {
+      if (Object.keys(calendars).length===1){
+        errormsg = "You cannot delete your last calendar!"
+        password = ""
+      }
+      else {
+        delete calendars[selectedCalendar];
+        console.log(selectedCalendar);
+        calendars = { ...calendars };
+        console.log(calendars);
 
-  //   console.log("current = "+currIndex);
-  // }
-  // async function saveNewCalendar(){
-  //   if (!user) return;
-  //   selected=newCalendar; 
-  //   calendars = [...calendars, newCalendar];  
-  //   const ref = doc(db, "users", user.uid);
-  //   await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
-  //   console.log("Saved "+newCalendar+" to calendars");
-  //   newCalendar="";
-  //   currIndex = calendars.length-1;
+        updateCalendars();
 
-  //   console.log("current = "+currIndex);
-  // }
-  // async function saveRenameCalendar(){
-  //   if (!user) return;
-  //   calendars[currIndex] = renameCalendar;
-  //   calendars = [...calendars];
-  //   selected=renameCalendar;
+        selectedCalendar = Object.keys(calendars)[0];
+        password = ""
+        errormsg = ""
+        overlaySelector = "";
+      }
+    }).catch((error) => {
+      errormsg = "Incorrect password!"
+    });
+  }
+  function newCalendar(){
+    if (newCal === ""){
+      errormsg = "New name cannot be empty!"
+    } else if (Object.values(calendars).includes(newCal)){
+      errormsg = "New name cannot be a duplicate!";
+    } else {
+      const timestamp = Date.now().toString();
+      calendars[timestamp] = newCal;
+      calendars = { ...calendars };
+      updateCalendars();
 
-  //   console.log("current = "+currIndex);
-  //   // const ref = doc(db, "users", user.uid);
-  //   // await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
-  //   // console.log("Saved "+newCalendar+" to calendars");
-  //   // newCalendar="";
-  // }
+      selectedCalendar = timestamp;
+      errormsg = "";
+      newCal=""
+      overlaySelector=""
+    }
+  }
+  async function updateCalendars(){
+    if (!user) return;
+    const timestamp = Date.now()
+    const ref = doc(db, "users", user.uid);
+    const name = (user.email ? user.email.replace("@tracker.app", "") : "anonymous"+timestamp.toString());
 
-  //   async function saveDeleteCalendar(){
-  //   if (!user) return;
-  //   calendars.splice(currIndex);
-  //   calendars = [...calendars];
-  //   selected = calendars[currIndex]
-
-  //   console.log("current = "+currIndex);
-  //   // const ref = doc(db, "users", user.uid);
-  //   // await setDoc(ref, {calendars: calendars, timestamp: Date.now()}, { merge: true });
-  //   // console.log("Saved "+newCalendar+" to calendars");
-  //   // newCalendar="";
-  // }
-
-
-
-
+    if (ref.calendars)
+      await updateDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, timestamp: timestamp});
+    else {
+      await setDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, name: name, timestamp: timestamp});
+    }
+    console.log("Saved calendars to database");
+  }
 
   function handleSaved() {
     reloadCounter += 1; 
@@ -104,19 +128,48 @@
     selectedEntry = entry;
   }
 
-  async function loadColorPreference(user){
+  async function loadUserData(user){
     if (!user) return;
+
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
-    if (snap.exists()) {
-      invert = snap.data().colorPreference;
-      console.log("Loaded user profile invert="+invert);
-    } else {
-      invert = false;
-    }
-  }
 
-  onMount(loadColorPreference);
+    if (snap.exists()) {
+      const userData = snap.data();
+
+      if (userData.calendars){
+        calendars = userData.calendars;
+        selectedCalendar = userData.selectedCalendar;
+        console.log("Loaded user calendars");
+      }
+      else{
+        calendars = {};
+        const timestamp = Date.now().toString();
+        calendars[timestamp] = "Calendar 1";
+        selectedCalendar = timestamp;
+        await updateCalendars();
+        console.log("Initialized user calendars");
+      }
+      if (userData.colorPreference){
+        invert = userData.colorPreference;
+        console.log("Loaded user invert="+invert);
+      } else{
+        invert = false;
+        console.log("Initialized user invert="+invert);
+      }
+
+    } else{
+      invert = false;
+      calendars = {};
+      const timestamp = Date.now().toString();
+      calendars[timestamp] = "Calendar 1";
+      selectedCalendar = timestamp;
+      await updateCalendars();
+
+      console.log("New user.");
+    }
+}
+
 
 </script>
 
@@ -127,76 +180,82 @@
     }
 </style>
 
-{#if !user}
+{#if !user || !selectedCalendar}
   <Login/>
 {:else}
   <div style="display: flex;
   flex-direction: column;
   min-height: 100vh;">
     <div style="flex-grow: 1;">
-    <Question user={user} externalEntry={selectedEntry} onSaved={handleSaved} invert={invert}/>
-    <Calendar user={user} onSelectEntry={handleSelectEntry} reloadTrigger={reloadCounter} invert={invert}/>
+    <Question user={user} externalEntry={selectedEntry} onSaved={handleSaved} invert={invert} selectedCalendar={selectedCalendar}/>
+    <Calendar user={user} onSelectEntry={handleSelectEntry} reloadTrigger={reloadCounter} invert={invert} selectedCalendar={selectedCalendar}/>
     </div>
 
     <div style="display: flex;
     justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
     padding-left: 5%;
     padding-right: 5%;
     margin-bottom: 5%;">
-      <div>
+      <div style="order: 2; flex-wrap: wrap; gap:.5rem;display: flex">
         <button on:click={logout}>Log Out</button>
         <button on:click={() => {hint = !hint}} style="padding: .4rem inherit;"><img src={lightbulb} width="12px" style="transform: translateY(15%);"></button>
       </div>
       {#if invert!=null} 
-      <div>
-        <!-- <button on:click={menu=!menu}
-        style="padding: .4rem inherit;">
-          Calendars
-        </button> -->
+      <div style="order: 1; flex-wrap: wrap; gap:.5rem;display: flex">
+        <button on:click={() => {menu=!menu}}
+        style="padding: .4rem inherit; border: 2px dashed #339FFF;">
+          <b>{calendars[selectedCalendar]}</b>
+        </button>
         {#if menu}
           <div class="overlay">
             <span>
-            {#each calendars as calendar, i}
-              <button on:click={selectedCalendar=i}
-              style={selectedCalendar===i ? "border: 2px dashed #339FFF;" : ""+("margin: .5rem")}>{calendar}</button>
+            {#each Object.keys(calendars).sort() as id}
+              <button on:click={() => {selectedCalendar=id; updateCalendars()}}
+              style={(selectedCalendar===id ? "border: 2px dashed #339FFF;" : "border: 2px dashed #ccc;")+("margin: .5rem; font-size: 1.1rem")}>{calendars[id]}</button>
             {/each}
-            </span><br>
-            <span>
-            <button on:click={() => {renameCalendar(i)}}>Rename</button>
-            <button on:click={() => {deleteCalendar(i)}}>Delete</button>
-            <button on:click={() => {addCalendar(i)}}>New</button>
-            </span><br>
-            <button on:click={menu=!menu}>Return</button>
+            </span><br><br>
+            <span style="margin-bottom: .5rem; flex-wrap: wrap; gap:.5rem;display: flex;">
+            <button on:click={() => {overlaySelector="rename"}}>Rename</button>
+            <button on:click={() => {overlaySelector="delete"}}>Delete</button>
+            <button on:click={() => {overlaySelector="new"}}>New</button>
+            </span>
+            <button on:click={() => {menu=!menu}}>Back</button>
           </div>
         {/if}
-        <!-- <select style="padding: .4rem inherit;" id="selector"
-        bind:value={selected} on:change={(event) => {console.log(selected); handleSelectCalendar(event)}}>
-          {#each calendars as calendar}
-            <option value={calendar}>{calendar}</option>
-          {/each}
-          <option value="&&&&rename">Rename Current</option>
-          <option value="&&&&delete">Delete Current</option>
-          <option value="&&&&new">Add New</option>
-        </select>
-        {#if selected==="&&&&new"}
+        {#if overlaySelector==="rename"}
           <div class="overlay">
-            <input type="text" bind:value={newCalendar} placeholder="Calendar Name"><br>
-            <button on:click={saveNewCalendar}>Add</button>
+            <input type="text" class="login_input" bind:value={renamedCal} placeholder="Renaming {calendars[selectedCalendar]}"><br>
+            <span><button on:click={() => {overlaySelector=""; renamedCal=""}}>Back</button>
+            <button on:click={renameCalendar}>Confirm</button></span>
+            {#if errormsg!=""}
+            <p>{errormsg}</p>
+            {/if}
           </div>
         {/if}
-        {#if selected==="&&&&rename"}
+        {#if overlaySelector==="delete"}
           <div class="overlay">
-            <input type="text" bind:value={renameCalendar} placeholder="Calendar Name"><br>
-            <button on:click={saveRenameCalendar}>Rename</button>
+            <h3 style="margin-bottom: 0;">Delete {calendars[selectedCalendar]}?</h3>
+            <p><i>This action cannot be undone.</i></p><br><br>
+            <input type="password" class="login_input" bind:value={password} placeholder="Re-enter Password"><br>
+            <span><button on:click={() => {overlaySelector=""; password=""; errormsg=""}}>Back</button>
+            <button on:click={deleteCalendar}>Confirm</button></span>
+            {#if errormsg!=""}
+            <p>{errormsg}</p>
+            {/if}
           </div>
         {/if}
-        {#if selected==="&&&&delete"}
+        {#if overlaySelector==="new"}
           <div class="overlay">
-            Are you sure?
-            <button on:click={saveRenameCalendar}>Confirm</button>
-            <button on:click={saveRenameCalendar}>Back</button>
+            <input type="text" class="login_input" bind:value={newCal} placeholder="New Calendar"><br>
+            <span><button on:click={() => {overlaySelector=""; newCal=""; errormsg=""}}>Back</button>
+            <button on:click={newCalendar}>Confirm</button></span>
+            {#if errormsg!=""}
+            <p>{errormsg}</p>
+            {/if}
           </div>
-        {/if} -->
+        {/if}
         <button on:click={invertColors}
         style:background-color={invert ? 'hsl(0, 70%, 65%)' : 'hsl(120, 70%, 65%)'}>
           Invert
@@ -206,8 +265,9 @@
       {#if hint}
         <div class="overlay">
           <div style="width: 65%; text-align:left">
-            <span>Click on the top half of the current date to log an entry for <strong>today</strong>. Click on the bottom half to log an entry for <b>tonight</b>. Entries are only editable on the current day.
-            <br><br>To reverse the red-green color scheme, click "Invert" in the bottom-right corner. Your preferences will be saved for the next time you login!</span>
+            Welcome! <br><br>
+            <span>Click on the <b>top half</b> of the current date to log an entry for today. Click on the <b>bottom half</b> to log an entry for tonight. You can save a rating (0-10) and, optionally, some text. Entries may be edited only on the current date.
+            <br><br>To make a new calendar, click on <b>[current calendar]</b> in the bottom-left corner. You may add, delete, rename, and toggle between calendars to your liking. To reverse the red-green color scheme, click <b>Invert.</b> Your preferences will be saved for the next time you login!</span>
           </div>
           <br><br>
           <button on:click={() => {hint=!hint}}>Return</button>

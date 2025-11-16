@@ -118,29 +118,3 @@ function errorParser(error){
   </div>
     <!-- <button on:click={loginAnon}>login anonymous</button> -->
 </div>
-
-<style>
-.login {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 80%;
-  margin: 0 auto; 
-}
-.login_input {
-  border-bottom: 2px solid black;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  font-family: Courier, monospace;
-  outline: none;
-  box-shadow: none;
-  border-radius: 0;
-  caret-color: black;
-}
-
-input[type="search"] {
-  -webkit-appearance: none;
-}
-</style>

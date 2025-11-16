@@ -8,6 +8,7 @@
   export let externalEntry = null;
   export let onSaved = () => {};
   export let invert;
+  export let selectedCalendar;
 
 
   let currentDate =  new Date();
@@ -53,7 +54,7 @@
     if (locked && !override) return;
     saved = true;
 
-    const ref = doc(db, "users", uid, "entries", entry.key);
+    const ref = doc(db, "users", uid, selectedCalendar, entry.key); //prev "entries"
     if (entry.period==="day"){
       await setDoc(ref, { valueDay:value, textDay:text, timestamp:Date.now() }, {merge: true});
       if (entry.filledNight){
