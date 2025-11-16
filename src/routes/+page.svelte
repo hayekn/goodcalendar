@@ -68,13 +68,11 @@
       }
       else {
         delete calendars[selectedCalendar];
-        console.log(selectedCalendar);
         calendars = { ...calendars };
-        console.log(calendars);
+        selectedCalendar = Object.keys(calendars).sort()[0];
 
         updateCalendars();
 
-        selectedCalendar = Object.keys(calendars)[0];
         password = ""
         errormsg = ""
         overlaySelector = "";
@@ -92,9 +90,9 @@
       const timestamp = Date.now().toString();
       calendars[timestamp] = newCal;
       calendars = { ...calendars };
+      selectedCalendar = timestamp;
       updateCalendars();
 
-      selectedCalendar = timestamp;
       errormsg = "";
       newCal=""
       overlaySelector=""
