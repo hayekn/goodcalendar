@@ -30,6 +30,7 @@
   let errormsg = ""
 
   let menu = false;
+  let darkModeOn = false; 
 
   onAuthStateChanged(auth, (u) => {
     loadUserData(u);
@@ -42,6 +43,42 @@
     const ref = doc(db, "users", user.uid);
     await setDoc(ref, {colorPreference: invert, timestamp: Date.now()}, { merge: true });
     console.log("Saved user profile invert="+invert)
+  }
+
+  function darkMode() {
+    darkModeOn = !darkModeOn;
+    if (darkModeOn){
+      document.documentElement.style.setProperty('--V-background-white', 'var(--background-black)');
+      document.documentElement.style.setProperty('--V-background-off-white', 'var(--background-off-black)');
+      document.documentElement.style.setProperty('--V-medium-text', 'var(--lighter-text)');
+      document.documentElement.style.setProperty('--V-dark-text', 'var(--lighter-text)');
+      document.documentElement.style.setProperty('--V-ligher-text', 'var(--dark-text)');
+
+      document.querySelectorAll(".day-number").forEach(elmt => {
+        elmt.style.textShadow = "0px 0px 2px black";
+      }); 
+      document.querySelectorAll(".title").forEach(elmt => {
+        elmt.style.backgroundPositionY = '0px';
+        elmt.style.backgroundPositionX = '-70px';
+        elmt.style.backgroundSize = '150% auto';
+      }); 
+    }
+    else {
+      document.documentElement.style.setProperty('--V-background-white', 'var(--background-white)');
+      document.documentElement.style.setProperty('--V-background-off-white', 'var(--background-off-white)');
+      document.documentElement.style.setProperty('--V-medium-text', 'var(--medium-text)');
+      document.documentElement.style.setProperty('--V-dark-text', 'var(--dark-text)');
+      document.documentElement.style.setProperty('--V-ligher-text', 'var(--lighter-text)');
+      
+      document.querySelectorAll(".day-number").forEach(elmt => {
+        elmt.style.textShadow = "none";
+      });  
+      document.querySelectorAll(".title").forEach(elmt => {
+        elmt.style.backgroundPositionY = "-100px";
+        elmt.style.backgroundPositionX = '0px';
+        elmt.style.backgroundSize = 'cover';
+      }); 
+    }
   }
 
   function renameCalendar(){
@@ -120,6 +157,8 @@
     signOut(auth);
     user = null;
     selectedEntry = null;
+    darkModeOn = true;
+    darkMode();
   }
 
   function handleSelectEntry(entry) {
@@ -167,16 +206,7 @@
       console.log("New user.");
     }
 }
-
-
 </script>
-
-<style>
-  :global(body) {
-        font-family: 'Comic Sans MS', 'MyComic';
-        margin: 0;
-    }
-</style>
 
 {#if !user || !selectedCalendar}
   <Login/>
@@ -194,11 +224,12 @@
     gap: .5rem;
     flex-wrap: wrap;
     padding-left: 5%;
-    padding-right: 5%;
-    margin-bottom: 5%;">
-      <div style="order: 2; flex-wrap: wrap; gap:.5rem;display: flex">
+    padding-right: 5%;">
+      <div style="order: 2; flex-wrap: wrap; gap:.5rem; display: flex">
         <button on:click={logout}>Log Out</button>
-        <button on:click={() => {hint = !hint}} style="padding: .4rem inherit;"><img src={lightbulb} width="12px" style="transform: translateY(15%);"></button>
+        <!-- <button on:click={() => {hint = !hint}} style="background-color: rgb(0, 0, 0, 0);">
+          <svg xmlns="http://www.w3.org/2000/svg" height="25" viewBox="0 0 352 512"><path fill="var(--V-medium-text)" d="M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z"/></svg>
+        </button> -->
       </div>
       {#if invert!=null} 
       <div style="order: 1; flex-wrap: wrap; gap:.5rem;display: flex">
@@ -255,7 +286,7 @@
           </div>
         {/if}
         <button on:click={invertColors}
-        style:background-color={invert ? 'hsl(0, 70%, 65%)' : 'hsl(120, 70%, 65%)'}>
+        style='background-color: {invert ? 'hsl(0, 70%, 65%)' : 'hsl(120, 70%, 65%)'}; color: #202020'>
           Invert
         </button>
       </div>
@@ -272,5 +303,13 @@
         </div>
       {/if}
     </div>
+  </div>
+
+  <div style="position: absolute; top:2%; right: clamp(40px, 5%, 7%); display: inline-block; align-items: center">
+    <button on:click={() => {hint = !hint}} style="background-color: rgb(0, 0, 0, 0); padding: 0; margin-right: 20px">
+      <svg xmlns="http://www.w3.org/2000/svg" height="3vh" viewBox="0 0 352 512"><path fill="var(--V-medium-text)" d="M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z"/></svg>
+    </button>
+    <button  class="floating-button" style="background-color: rgb(0, 0, 0, 0); padding: 0" on:click={darkMode}>
+      <svg xmlns="http://www.w3.org/2000/svg" height="3vh" width="3vh" viewBox="0 0 512 512"><path fill="var(--V-medium-text)" d="M283.211 512c78.962 0 151.079-35.925 198.857-94.792 7.068-8.708-.639-21.43-11.562-19.35-124.203 23.654-238.262-71.576-238.262-196.954 0-72.222 38.662-138.635 101.498-174.394 9.686-5.512 7.25-20.197-3.756-22.23A258.156 258.156 0 0 0 283.211 0c-141.309 0-256 114.511-256 256 0 141.309 114.511 256 256 256z"/></svg></button>
   </div>
 {/if}

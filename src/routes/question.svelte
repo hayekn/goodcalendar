@@ -1,3 +1,10 @@
+<style>
+  .title{
+    font-size: clamp(30px, 2vw, 3vw);
+    margin-top: 2rem;
+    margin-bottom: 0;
+  }
+</style>
 <script>
   import { db } from "../firebase.js";
   import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -9,7 +16,6 @@
   export let onSaved = () => {};
   export let invert;
   export let selectedCalendar;
-
 
   let currentDate =  new Date();
   const year = currentDate.getFullYear();
@@ -37,8 +43,7 @@
   let saved = false;
   let sliderColor = "";
   let checkBackTomorrow = "";
-  let override = false; 
-
+  let override = false;
 
   function valueToColor(value) {
     if (invert) value = 10-value;
@@ -68,8 +73,8 @@
     }
     console.log("Logged " +entry.key+" at "+entry.period)
 
-    value = 5;
-    text = "";
+    // value = 5;
+    // text = "";
 
     // signals change to calendar via main page
     onSaved();
@@ -122,17 +127,14 @@
 {:else}
   {#if locked && !override}
   <br>
-    <div class="question">
-      <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px">Welcome {name}!</h2>
-      <h3 style="margin-top: .25rem; font-style: italic;">{checkBackTomorrow || "Viewing past entries"}</h3>
+    <div class="parent">
+      <h1 class="title" >Welcome {name}!</h1>
+      <h3 style="margin-top: 0; font-style: italic;">{checkBackTomorrow || "Viewing past entries"}</h3>
     </div>
   {:else}
-    <div class="question">
-      <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px">
-      Welcome {name}!</h2>
-      <h3 style="margin-top: .25rem; font-style: italic;">Rate your {externalEntry.period==="day" ? "day" : "night"}</h3>
+    <div class="parent">
+      <h1 class="title" >Welcome {name}!</h1>
+      <h3 style="margin-top: 0; font-style: italic;">Rate your {externalEntry.period==="day" ? "day" : "night"}</h3>
       <input
         type="range"
         min="0"
@@ -141,22 +143,19 @@
         bind:value={value}
         disabled={locked && !override}
         class={showGif}
-        style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}"
+        style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}; margin-bottom: 0"
       />
-      <textarea bind:value={text} placeholder="Optional notes..."></textarea><br>
+      <textarea bind:value={text} placeholder="Optional notes..." style="margin-top:0"></textarea>
       <button onclick={() => save(externalEntry)} disabled={locked && !override}>Save ({value.toFixed(1)}/10)</button>
     </div>
   {/if}
 {/if}
 {/if}
 
-<button class="hiddencheck" ondblclick={() => {console.log("Activated override!"); override=!override}}></button>
+<button class="floating-button" style="opacity: 0; left: 2%;"
+ondblclick={() => {console.log("Activated override!"); override=!override}}></button>
 
-<style>
-.hiddencheck {
-  opacity: 0;
-  right: 2%;
-  top: 2%;
-  position: absolute;
-}
-</style>
+<!-- <button  class="floating-button" style="right: 5px; background-color: rgb(0, 0, 0, 0)" onclick={darkMode}> -->
+<!-- <svg xmlns="http://www.w3.org/2000/svg" height="3vh" width="3vh" viewBox="0 0 512 512"><path fill="var(--V-medium-text)" d="M283.211 512c78.962 0 151.079-35.925 198.857-94.792 7.068-8.708-.639-21.43-11.562-19.35-124.203 23.654-238.262-71.576-238.262-196.954 0-72.222 38.662-138.635 101.498-174.394 9.686-5.512 7.25-20.197-3.756-22.23A258.156 258.156 0 0 0 283.211 0c-141.309 0-256 114.511-256 256 0 141.309 114.511 256 256 256z"/></svg></button> -->
+
+

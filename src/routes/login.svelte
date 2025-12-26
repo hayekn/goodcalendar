@@ -16,7 +16,6 @@
   async function loginAnon() {
     try {
       const userCredential = await signInAnonymously(auth);
-      // dispatch("loggedin", { uid: userCredential.user.uid});
     } catch (err) {
       console.error(err.code, err.message);
       alert(err.message);
@@ -28,7 +27,6 @@
   try {
     const email = `${name}@tracker.app`;
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // dispatch("loggedin", { uid: userCredential.user.uid });
   } catch (err) {
     console.error(err);
     error = err.message;
@@ -40,7 +38,6 @@ async function login() {
   try {
     const email = `${name}@tracker.app`;
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    // dispatch("loggedin", { uid: userCredential.user.uid });
   } catch (err) {
     console.error(err);
     error = err.message;
@@ -48,16 +45,16 @@ async function login() {
 }
 
 function errorParser(error){
-  switch(error){
-    case "Firebase: Error (auth/invalid-credential).": 
+  switch(true){
+    case error.startsWith("Firebase: Error (auth/invalid-credential)."): 
       return "Incorrect password or the account doesn't exist"
-    case "Firebase: Missing password requirements: [Password must contain at least 6 characters] (auth/password-does-not-meet-requirements).":
-      return "Password must contain at least 6 characters"
-    case "Firebase: Error (auth/email-already-in-use).":
+    case error.startsWith("Firebase: Missing password requirements:"):
+      return "Your password must contain at least one uppercase character, lowercase character, and number. Minimum length is 6 characters."
+    case error.startsWith("Firebase: Error (auth/email-already-in-use)."):
       return "This account already exists."
-    case "Firebase: Error (auth/invalid-email).":
+    case error.startsWith("Firebase: Error (auth/invalid-email)."):
       return "Your username cannot have any spaces"
-    case "Firebase: Error (auth/missing-password).":
+    case error.startsWith("Firebase: Error (auth/missing-password)."):
       return "Missing password"
     default: return error
   }
@@ -65,12 +62,10 @@ function errorParser(error){
 
 </script>
 
-<div class="login">
+<div class="parent">
   <br>
-  <h2 style="background: url({sparkles}); no-repeat; background-size: cover; 
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px">The Good Calendar</h2>
-  <p style="text-align: center; margin-top: 0px">Here, you can log the quality of your days and nights for posterity. Dedicated to my girlfriend and her chronic migranes.</p>
-  <div style="top: 3rem; position:relative">
+  <h1 class="title">Good Calendar</h1>
+  <div style="margin-top: 2rem; position:relative">
     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;">
       <input
         type="text"
@@ -87,34 +82,23 @@ function errorParser(error){
           bind:value={password}
           style="width: 200px;"
         />
-        <button
-          style="
-            position: absolute;
-            right: -45px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-radius: 10%;
-            font-size: 0.75rem;
-            padding: 0.1rem 0.25rem;
-            white-space: nowrap;
-          "
-          on:click={() => (passType = !passType)}
-          >
+        <button on:click={() => (passType = !passType)} class="login-show-password">
           {passType ? "show" : "hide"}
         </button>
       </div>
     </div>
   </div>
-  <div style="top: 3rem; position:relative">
+  <div style="position:relative">
     <div style="align-items: center">
       <button on:click={login}>Login</button>
       <button on:click={signup}>Sign up</button>
     </div>
   </div>
-  <div style="top: 3rem; position:relative">
+  <div class="login-hint">
   {#if error}
-        {errorParser(error)}
+      {errorParser(error)}
   {/if}
   </div>
+  <p style="text-align: center; max-width: 550px; color: var(--medium-text);">Track the quality of your days and nights using color-coded ratings and comments. Dedicated to my girlfriend and her chronic migranes.</p>
     <!-- <button on:click={loginAnon}>login anonymous</button> -->
 </div>

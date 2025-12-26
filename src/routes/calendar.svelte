@@ -19,7 +19,7 @@
   let showGif = "";
 
   function valueToColor(value) {
-    if (value == null) return "#fff";
+    if (value == null) return "var(--V-background-white)";
     const hue = 120 * (value / 10);
     return `hsl(${hue}, 70%, 65%)`;
   }
@@ -30,13 +30,10 @@
 
   async function loadEntries() {
     console.log("Loaded calendar entries");
-    // todays date
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-
     const currentHour = new Date().getHours();
     const defaultPeriod = currentHour < 16 ? "day" : "night";
-    
     const today = new Date();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -78,8 +75,11 @@
       }
 
       // when init, select current day
-      if (current && selectedInfo===null){
-          loadedEntry.period = defaultPeriod;
+      if (current){
+          if (selectedInfo?.period)
+            loadedEntry.period = selectedInfo.period
+          else
+            loadedEntry.period = defaultPeriod;
           handleClick(loadedEntry);
       }
 
@@ -92,7 +92,7 @@
   function handleClick(entry) {
     selectedInfo = entry;
     onSelectEntry(entry);
-    console.log("Selected "+entry.key)
+    console.log("Selected "+selectedInfo.key+" at "+selectedInfo.period)
   }
 
   function prevMonth() {
@@ -147,7 +147,7 @@
   {#each entries as e}
     <div
       class="day"
-      style={(e.current ? "border: 1.5px solid #6E6E6E;" : "")+
+      style={(e.current ? "border: 1.5px solid var(--V-lighter-text);" : "")+
             (
             (selectedInfo != null && selectedInfo.key===e.key && selectedInfo.period === "day") 
             ? "border-top: 2.5px solid #6BCBFF;" : selectedInfo != null && selectedInfo.key===e.key 
@@ -155,31 +155,40 @@
             )
             }
     >
-    <!-- 6BE0FF 339FFF -->
-     <!-- 0077BA 4E2FD4-->
 
       <div class="day-number">{e.day}</div>
 
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="day-half top-half"
         style={
-        ((!invert && e.valueDay==10)
+        ( (e.valueDay != null) ?
+          (!invert && e.valueDay==10)
           ? `background: url('${sparkles}'); background-size: cover;`
           : (invert && e.valueDay==0) ? `background: url('${sparkles}'); background-size: cover;`
           : `background-color: ${valueToColor((e.valueDay!=null && !invert) ? e.valueDay : 
-          (e.valueDay != null) ? 10 - e.valueDay : null )};`)
+          (e.valueDay != null) ? 10 - e.valueDay : null )};`
+          : ''
+        ) +
+          'transition: background-color .3s ease-in-out'
         }
-        on:click={() => handleClick({ ...e, period: 'day' })}
+        on:click={() => handleClick({ ...e, period: 'day'})}
       ></div>
-
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="day-half bottom-half"
         style={
-        ((!invert && e.valueNight==10)
+        ( (e.valueNight != null) ?
+          (!invert && e.valueNight==10)
           ? `background: url('${sparkles}'); background-size: cover;`
           : (invert && e.valueNight==0) ? `background: url('${sparkles}'); background-size: cover;`
           : `background-color: ${valueToColor((e.valueNight!=null && !invert) ? e.valueNight : 
-          (e.valueNight != null) ? 10 - e.valueNight : null )};`)
+          (e.valueNight != null) ? 10 - e.valueNight : null )};`
+          : ''
+        ) +
+          'transition: background-color .3s ease-in-out'
         }
         on:click={() => handleClick({ ...e, period: 'night' })}
       ></div>
@@ -210,85 +219,3 @@
     {/if}
   </div>
 {/if}
-
-<style>
-  .month-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-
-  .nav-btn {
-    border: none;
-    background: #eee;
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: 50ms;
-  }
-  .nav-btn:hover {
-    background-color: #ccc;
-    transition: 50ms;
-  }
-  .nav-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    max-width: 350px;
-    margin: 1rem auto 2rem auto;
-  }
-
-  .day {
-    position: relative;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    height: 50px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.12s ease;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .day:hover {
-    transform: translateY(-0.2rem);
-  }
-
-  .day-number {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: bold;
-    z-index: 2;
-    pointer-events: none;
-  }
-
-  .day-half {
-    flex: 1;
-    width: 100%;
-  }
-
-  .top-half {
-    border-bottom: .75px dashed rgba(0, 0, 0, 0.15);
-  }
-
-  .entry-info {
-    max-width: 350px;
-    margin: 0 auto;
-    margin-bottom: 2rem;
-    padding: 0.5rem;
-    background: #f0f0f0;
-    border-radius: 6px;
-    text-align: center;
-    font-size: 0.9rem;
-  }
-</style>
