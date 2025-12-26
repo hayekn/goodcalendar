@@ -159,8 +159,6 @@
     signOut(auth);
     user = null;
     selectedEntry = null;
-    darkModeOn = true;
-    darkMode();
   }
 
   function handleSelectEntry(entry) {
@@ -208,10 +206,12 @@
       console.log("New user.");
     }
 }
+
+// $: if (darkModeLogin) {darkMode}
 </script>
 
 {#if !user || !selectedCalendar}
-  <Login/>
+  <Login darkMode={darkMode}/>
 {:else}
 
 <div style="flex-grow: 1;">

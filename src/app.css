@@ -62,7 +62,7 @@
 
     .login-hint {
       margin-top: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0rem;
       position:relative; 
       text-align:justify; 
       font-style:italic; 
@@ -105,8 +105,19 @@
       outline: none;
       box-shadow: none;
       border-radius: 0;
-      caret-color: black;
+      color: var(--V-medium-text);
+      caret-color: var(--V-dark-text);
+      transition: all .3s ease-in-out
     }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px var(--V-background-white) inset !important;
+      -webkit-text-fill-color: var(--V-medium-text) !important;
+      color: var(--V-medium-text) !important;
+    }
+
 
     button {
       border: none;
