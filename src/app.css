@@ -123,6 +123,7 @@
       -webkit-box-shadow: 0 0 0px 1000px var(--V-background-white) inset !important;
       -webkit-text-fill-color: var(--V-medium-text) !important;
       color: var(--V-medium-text) !important;
+      font-family:  Courier, monospace, -apple-system, 'Inter', sans-serif !important;
     }
 
 
