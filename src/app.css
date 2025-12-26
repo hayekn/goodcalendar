@@ -16,6 +16,7 @@
       --dark-text: #202020;
 
       --brightness: 65%;
+      --brightness-factor: 1;
       --true-white: #ffffff;
       --true-black: #000000;
 
@@ -31,6 +32,7 @@
       --V-dark-text: var(--dark-text);
 
       --V-brightness: var(--brightness);
+      --V-brightness-factor: var(--brightness-factor);
       --V-true-white: var(--true-white);
       --V-true-black: var(--true-black);
     }
@@ -62,6 +64,7 @@
       -webkit-text-fill-color: transparent; 
       background-position-y: -90px;
       font-size: clamp(38px, 3vw, 4vw);
+      filter: brightness(var(--V-brightness-factor));
     }
 
     .login-hint {

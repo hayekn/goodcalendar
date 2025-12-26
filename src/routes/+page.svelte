@@ -54,13 +54,8 @@
       document.documentElement.style.setProperty('--V-dark-text', 'var(--lighter-text)');
       document.documentElement.style.setProperty('--V-ligher-text', 'var(--dark-text)');
       document.documentElement.style.setProperty('--V-brightness', '50%');
+      document.documentElement.style.setProperty('--V-brightness-factor', '2.2');
       document.documentElement.style.setProperty('--V-true-white', 'var(--true-black)');
-
-      document.querySelectorAll(".title").forEach(elmt => {
-        elmt.style.backgroundPositionY = '0px';
-        elmt.style.backgroundPositionX = '-70px';
-        elmt.style.backgroundSize = '150% auto';
-      }); 
     }
     else {
       document.documentElement.style.setProperty('--V-background-white', 'var(--background-white)');
@@ -69,13 +64,8 @@
       document.documentElement.style.setProperty('--V-dark-text', 'var(--dark-text)');
       document.documentElement.style.setProperty('--V-ligher-text', 'var(--lighter-text)');
       document.documentElement.style.setProperty('--V-brightness', 'var(--brightness)');
+      document.documentElement.style.setProperty('--V-brightness-factor', 'var(--brightness-factor)');
       document.documentElement.style.setProperty('--V-true-white', 'var(--true-white)');
-      
-      document.querySelectorAll(".title").forEach(elmt => {
-        elmt.style.backgroundPositionY = "-100px";
-        elmt.style.backgroundPositionX = '0px';
-        elmt.style.backgroundSize = 'cover';
-      }); 
     }
   }
 
