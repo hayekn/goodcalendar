@@ -54,10 +54,8 @@
       document.documentElement.style.setProperty('--V-dark-text', 'var(--lighter-text)');
       document.documentElement.style.setProperty('--V-ligher-text', 'var(--dark-text)');
       document.documentElement.style.setProperty('--V-brightness', '50%');
+      document.documentElement.style.setProperty('--V-true-white', 'var(--true-black)');
 
-      document.querySelectorAll(".day-number").forEach(elmt => {
-        elmt.style.textShadow = "0px 0px 2px black";
-      }); 
       document.querySelectorAll(".title").forEach(elmt => {
         elmt.style.backgroundPositionY = '0px';
         elmt.style.backgroundPositionX = '-70px';
@@ -71,10 +69,8 @@
       document.documentElement.style.setProperty('--V-dark-text', 'var(--dark-text)');
       document.documentElement.style.setProperty('--V-ligher-text', 'var(--lighter-text)');
       document.documentElement.style.setProperty('--V-brightness', 'var(--brightness)');
+      document.documentElement.style.setProperty('--V-true-white', 'var(--true-white)');
       
-      document.querySelectorAll(".day-number").forEach(elmt => {
-        elmt.style.textShadow = "0px 0px 2px white";
-      });  
       document.querySelectorAll(".title").forEach(elmt => {
         elmt.style.backgroundPositionY = "-100px";
         elmt.style.backgroundPositionX = '0px';
