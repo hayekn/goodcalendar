@@ -99,6 +99,9 @@ function errorParser(error){
       {errorParser(error)}
   {/if}
   </div>
-  <p style="text-align: center; max-width: 550px; color: var(--medium-text);">Track the quality of your days and nights using color-coded ratings and comments. Dedicated to my girlfriend and her chronic migranes.</p>
+  <p style="text-align: center; max-width: 550px; color: var(--medium-text); font-size: 12pt">Track the quality of your days and nights using color-coded ratings and comments. Dedicated to my girlfriend and her chronic migranes.</p>
+  <p style="text-align: center; max-width: 550px; color: var(--medium-text); font-size: 9pt">
+    For demo, <span style="text-decoration:underline">username: goodcalendar, password: goodcalendar</span> 
+  </p>
     <!-- <button on:click={loginAnon}>login anonymous</button> -->
 </div>

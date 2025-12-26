@@ -143,58 +143,60 @@
   </button>
 </div>
 
-<div class="calendar">
-  {#each entries as e}
-    <div
-      class="day"
-      style={(e.current ? "border: 1.5px solid var(--V-lighter-text);" : "")+
-            (
-            (selectedInfo != null && selectedInfo.key===e.key && selectedInfo.period === "day") 
-            ? "border-top: 2.5px solid #6BCBFF;" : selectedInfo != null && selectedInfo.key===e.key 
-            ? "border-bottom: 2.5px solid #0077BA;" : ""
-            )
-            }
-    >
-
-      <div class="day-number">{e.day}</div>
-
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="calendar">
+    {#each entries as e}
       <div
-        class="day-half top-half"
-        style={
-        ( (e.valueDay != null) ?
-          (!invert && e.valueDay==10)
-          ? `background: url('${sparkles}'); background-size: cover;`
-          : (invert && e.valueDay==0) ? `background: url('${sparkles}'); background-size: cover;`
-          : `background-color: ${valueToColor((e.valueDay!=null && !invert) ? e.valueDay : 
-          (e.valueDay != null) ? 10 - e.valueDay : null )};`
-          : ''
-        ) +
-          'transition: background-color .3s ease-in-out'
-        }
-        on:click={() => handleClick({ ...e, period: 'day'})}
-      ></div>
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        class="day-half bottom-half"
-        style={
-        ( (e.valueNight != null) ?
-          (!invert && e.valueNight==10)
-          ? `background: url('${sparkles}'); background-size: cover;`
-          : (invert && e.valueNight==0) ? `background: url('${sparkles}'); background-size: cover;`
-          : `background-color: ${valueToColor((e.valueNight!=null && !invert) ? e.valueNight : 
-          (e.valueNight != null) ? 10 - e.valueNight : null )};`
-          : ''
-        ) +
-          'transition: background-color .3s ease-in-out'
-        }
-        on:click={() => handleClick({ ...e, period: 'night' })}
-      ></div>
-    </div>
-  {/each}
-</div>
+        class="day"
+        style={(e.current ? "border: 1.5px solid var(--V-lighter-text);" : "")+
+              (
+              (selectedInfo != null && selectedInfo.key===e.key && selectedInfo.period === "day") 
+              ? "border-top: 2.5px solid #6BCBFF;" : selectedInfo != null && selectedInfo.key===e.key 
+              ? "border-bottom: 2.5px solid #0077BA;" : ""
+              )
+              }
+      >
+
+        <div class="day-number">{e.day}</div>
+
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+          class="day-half top-half"
+          style={
+          ( (e.valueDay != null) ?
+            (!invert && e.valueDay==10)
+            ? `background: url('${sparkles}'); background-size: cover;`
+            : (invert && e.valueDay==0) ? `background: url('${sparkles}'); background-size: cover;`
+            : `background-color: ${valueToColor((e.valueDay!=null && !invert) ? e.valueDay : 
+            (e.valueDay != null) ? 10 - e.valueDay : null )};`
+            : ''
+          ) +
+            'transition: background-color .3s ease-in-out'
+          }
+          on:click={() => handleClick({ ...e, period: 'day'})}
+        ></div>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+          class="day-half bottom-half"
+          style={
+          ( (e.valueNight != null) ?
+            (!invert && e.valueNight==10)
+            ? `background: url('${sparkles}'); background-size: cover;`
+            : (invert && e.valueNight==0) ? `background: url('${sparkles}'); background-size: cover;`
+            : `background-color: ${valueToColor((e.valueNight!=null && !invert) ? e.valueNight : 
+            (e.valueNight != null) ? 10 - e.valueNight : null )};`
+            : ''
+          ) +
+            'transition: background-color .3s ease-in-out'
+          }
+          on:click={() => handleClick({ ...e, period: 'night' })}
+        ></div>
+      </div>
+    {/each}
+  </div>
+  
+
 <!-- (e.valueNight!=null && !invert) ? e.valueNight : e.valueNight ? 10 - e.valueNight : null -->
 {#if selectedInfo && 
 !((selectedInfo.period==="day" && !selectedInfo.filledDay && selectedInfo.current) ||
