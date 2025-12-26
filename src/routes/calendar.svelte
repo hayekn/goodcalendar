@@ -126,7 +126,7 @@
   onMount(loadEntries);
 </script>
 
-{#if (selectedInfo)}
+{#if (selectedInfo || selectedCalendar)}
 <div class="month-nav">
   <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">
     ←
