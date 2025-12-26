@@ -27,12 +27,13 @@
 
 
   let uid = user.uid;
-  if (user.email){
-    name = user.email.replace("@tracker.app", "").charAt(0).toUpperCase()+
-           user.email.replace("@tracker.app", "").slice(1);
+  if (user.email) {
+    const base = user.email.split("@")[0];
+    name = base.charAt(0).toUpperCase() + base.slice(1);
   } else {
-    name = "Temp"
+    name = "Temp";
   }
+
 
   let key = `${year}-${pad(month+1)}-${pad(day)}`;
   let value = 5;

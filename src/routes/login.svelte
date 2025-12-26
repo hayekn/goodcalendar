@@ -1,6 +1,6 @@
 <script>
   import { auth } from "../firebase.js";
-  import { signInAnonymously, signOut } from "firebase/auth";
+  import { signInAnonymously, signOut, sendPasswordResetEmail, getAuth } from "firebase/auth";
   import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
   import { createEventDispatcher } from "svelte";
   import sparkles from "$lib/sparkles.gif";
@@ -11,6 +11,7 @@
   let name = ""
   let password = "";
   let error = "";
+  let email = ""
   let passType = true;
 
   async function loginAnon() {
@@ -23,37 +24,59 @@
   }
 
   async function signup() {
-  error = "";
-  try {
-    const email = `${name}@tracker.app`;
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  } catch (err) {
-    console.error(err);
-    error = err.message;
-  }
+    error = "";
+    try {
+      if (name.includes('@'))
+        email = name;
+      else
+        email = `${name}@tracker.app`;
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      console.error(err);
+      error = err.message;
+    }
 }
 
-async function login() {
-  error = "";
-  try {
-    const email = `${name}@tracker.app`;
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  } catch (err) {
-    console.error(err);
-    error = err.message;
+  async function login() {
+    error = "";
+    try {
+      if (name.includes('@'))
+        email = name;
+      else
+        email = `${name}@tracker.app`;
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      console.error(err);
+      error = err.message;
+    }
   }
-}
+
+  async function resetPassword() {
+    error = "";
+    if (name.includes('@'))
+      email = name;
+    else {
+      error = "You cannot reset the password of an account that did not use an email.";
+      return;
+    }
+    sendPasswordResetEmail(auth, email)
+      .then(() => {error = "If this email is associated with an account, an email has been sent."})
+      .catch((err) => {
+        error = err.message;
+    });
+  }
 
 function errorParser(error){
   switch(true){
     case error.startsWith("Firebase: Error (auth/invalid-credential)."): 
-      return "Incorrect password or the account doesn't exist"
+      return "Incorrect password or the account doesn't exist."
     case error.startsWith("Firebase: Missing password requirements:"):
       return "Your password must contain at least one uppercase character, lowercase character, and number. Minimum length is 6 characters."
     case error.startsWith("Firebase: Error (auth/email-already-in-use)."):
       return "This account already exists."
     case error.startsWith("Firebase: Error (auth/invalid-email)."):
-      return "Your username cannot have any spaces"
+      return "Your username cannot have any spaces. If using email, it must be valid."
     case error.startsWith("Firebase: Error (auth/missing-password)."):
       return "Missing password"
     default: return error
@@ -69,7 +92,7 @@ function errorParser(error){
     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;">
       <input
         type="text"
-        placeholder="Username"
+        placeholder="Username or Email"
         bind:value={name}
         class="login_input"
         style="width: 200px;"
@@ -89,9 +112,12 @@ function errorParser(error){
     </div>
   </div>
   <div style="position:relative">
-    <div style="align-items: center">
-      <button on:click={login}>Login</button>
-      <button on:click={signup}>Sign up</button>
+    <div style="text-align:center">
+      <button on:click={login} style="font-size:11pt;">Login</button>
+      <button on:click={signup} style="font-size:11pt;">Sign up</button>
+    </div>
+    <div style="margin-top: 5px; text-align:center">
+      <button on:click={resetPassword} style="font-size:11pt;">Forgot Password</button>
     </div>
   </div>
   <div class="login-hint">

@@ -239,10 +239,11 @@
         </button>
         {#if menu}
           <div class="overlay">
+            <h2 style="margin-bottom: .5rem;">Your Calendars</h2>
             <span>
             {#each Object.keys(calendars).sort() as id}
               <button on:click={() => {selectedCalendar=id; updateCalendars()}}
-              style={(selectedCalendar===id ? "border: 2px dashed #339FFF;" : "border: 2px dashed #ccc;")+("margin: .5rem; font-size: 1.1rem")}>{calendars[id]}</button>
+              style={(selectedCalendar===id ? "border: 2px dashed #339FFF;" : "border: 2px dashed #ccc;")+("margin: .5rem; margin-bottom: 0; font-size: 1.1rem")}>{calendars[id]}</button>
             {/each}
             </span><br><br>
             <span style="margin-bottom: .5rem; flex-wrap: wrap; gap:.5rem;display: flex;">
@@ -294,9 +295,8 @@
       {#if hint}
         <div class="overlay">
           <div style="width: 65%; text-align:left">
-            Welcome! <br><br>
             <span>Click on the <b>top half</b> of the current date to log an entry for today. Click on the <b>bottom half</b> to log an entry for tonight. You can save a rating (0-10) and, optionally, some text. Entries may be edited only on the current date.
-            <br><br>To make a new calendar, click on <b>[current calendar]</b> in the bottom-left corner. You may add, delete, rename, and toggle between calendars to your liking. To reverse the red-green color scheme, click <b>Invert.</b> Your preferences will be saved for the next time you login!</span>
+            <br><br>To manage your calendars, click on <b>Main</b> in the bottom-left corner. You may add, delete, rename, and toggle between calendars to your liking. To reverse the red-green color scheme, click <b>Invert.</b> Your preferences will be saved for the next time you login!</span>
           </div>
           <br><br>
           <button on:click={() => {hint=!hint}}>Return</button>
