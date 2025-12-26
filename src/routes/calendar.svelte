@@ -2,6 +2,7 @@
   import { db } from "../firebase.js";
   import { collection, getDocs } from "firebase/firestore";
   import { onMount } from "svelte";
+  import { fade } from 'svelte/transition';
   import sparkles from "$lib/sparkles.gif";
   import "../app.css";
 
@@ -125,6 +126,7 @@
   onMount(loadEntries);
 </script>
 
+{#if (selectedInfo)}
 <div class="month-nav">
   <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">
     ←
@@ -142,6 +144,7 @@
     →
   </button>
 </div>
+{/if}
 
   <div class="calendar">
     {#each entries as e}

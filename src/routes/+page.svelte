@@ -9,6 +9,8 @@
 
   import '../app.css';
   import { onMount } from "svelte";
+  import { fade } from 'svelte/transition';
+  import {cubicIn, cubicOut} from 'svelte/easing';
 
   import lightbulb from "$lib/lightbulb-regular.svg"
     import { error } from "@sveltejs/kit";
@@ -199,11 +201,11 @@
 {#if !user || !selectedCalendar}
   <Login darkMode={darkMode}/>
 {:else}
-
-<div style="flex-grow: 1;">
+<div style="flex-grow: 1;" in:fade={{delay:0, duration:400, easing: cubicIn}}
+                          out:fade={{delay:0, duration:400, easing: cubicOut}}>
   <Question user={user} externalEntry={selectedEntry} onSaved={handleSaved} invert={invert} selectedCalendar={selectedCalendar}/>
   <Calendar user={user} onSelectEntry={handleSelectEntry} reloadTrigger={reloadCounter} invert={invert} selectedCalendar={selectedCalendar}/>
-
+  {#if selectedEntry}
   <div style="display: flex;
   justify-content: space-between;
   gap: .5rem;
@@ -293,6 +295,7 @@
       </div>
     {/if}
   </div>
+  {/if}
 </div>
   <!-- <div style="position: absolute; top:2%; right: clamp(40px, 5%, 7%); display: inline-block; align-items: center">
     <button on:click={() => {hint = !hint}} style="background-color: rgb(0, 0, 0, 0); padding: 0; margin-right: 20px">
