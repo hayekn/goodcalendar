@@ -15,6 +15,8 @@
       --medium-text: #393939;
       --dark-text: #202020;
 
+      --brightness: 65%;
+
       --V-background-white: var(--background-white);
       --V-background-black: var(--background-black);
 
@@ -25,6 +27,8 @@
       --V-light-text: var(--light-text);
       --V-medium-text: var(--medium-text);
       --V-dark-text: var(--dark-text);
+
+       --V-brightness: var(--brightness);
     }
 
     body {
@@ -176,7 +180,8 @@
       background-size: cover;
       background-repeat: no-repeat;
       background-position: center;
-      border: 1px solid #ffffff;
+      border: 1px solid var(--V-background-white);
+      transition: border .3s ease-in-out; 
       cursor: pointer;
     }
 
@@ -296,6 +301,7 @@
       font-weight: bold;
       z-index: 2;
       pointer-events: none;
+      text-shadow: 0px 0px 2px white;
       color: var(--V-medium-text);
     }
 

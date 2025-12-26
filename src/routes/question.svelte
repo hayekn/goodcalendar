@@ -49,7 +49,7 @@
   function valueToColor(value) {
     if (invert) value = 10-value;
     const hue = 120 * (value / 10);
-    return `hsl(${hue}, 70%, 65%)`;
+    return `hsl(${hue}, 70%, var(--V-brightness))`;
   }
 
   function getFillPercentage() {

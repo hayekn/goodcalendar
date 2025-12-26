@@ -57,7 +57,7 @@
     if (name.includes('@'))
       email = name;
     else {
-      error = "You cannot reset the password of an account that did not use an email.";
+      error = "You can only reset the password of an account which uses a valid email.";
       return;
     }
     sendPasswordResetEmail(auth, email)

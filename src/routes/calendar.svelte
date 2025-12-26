@@ -21,7 +21,7 @@
   function valueToColor(value) {
     if (value == null) return "var(--V-background-white)";
     const hue = 120 * (value / 10);
-    return `hsl(${hue}, 70%, 65%)`;
+    return `hsl(${hue}, 70%, var(--V-brightness))`;
   }
 
   function pad(n) {
