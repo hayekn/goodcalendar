@@ -5,6 +5,7 @@
   import { fade } from 'svelte/transition';
   import sparkles from "$lib/sparkles.gif";
   import "../app.css";
+  import { decryptObject } from '$lib/encryption.js';
 
   export let user;
   export let onSelectEntry = (entry) => {};
@@ -30,6 +31,11 @@
   }
 
   async function loadEntries() {
+    if (!window.sessionEncryptionKey) {
+      console.error("No encryption key detected. Cannot load entries");
+      return;
+    }
+
     console.log("Loaded calendar entries");
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -46,9 +52,17 @@
     const colRef = collection(db, "users", uid, selectedCalendar); //prev "entries"
     const snap = await getDocs(colRef);
     const data = {};
-    snap.forEach((docSnap) => {
-      data[docSnap.id] = docSnap.data();
-    });
+
+    for (const docSnap of snap.docs) {
+      const encryptedData = docSnap.data();
+      const decryptedData = await decryptObject(
+        encryptedData,
+        ['textDay', 'textNight', 'valueDay', 'valueNight'],
+        window.sessionEncryptionKey
+      );
+      data[docSnap.id] = decryptedData;
+      console.log(decryptedData);
+    }
 
     const temp = [];
     const showTo =
@@ -123,7 +137,7 @@
   $: if (reloadTrigger) loadEntries();
   $: if (selectedCalendar) {loadEntries(); selectedInfo = null}
 
-  onMount(loadEntries);
+  // onMount(loadEntries);
 </script>
 
 {#if (selectedInfo || selectedCalendar)}

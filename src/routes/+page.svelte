@@ -13,7 +13,10 @@
   import {cubicIn, cubicOut} from 'svelte/easing';
 
   import lightbulb from "$lib/lightbulb-regular.svg"
-    import { error } from "@sveltejs/kit";
+  import { error } from "@sveltejs/kit";
+
+  import { loggedIn } from '$lib/stores/authSignal';
+
 
   let user = null;
   let selectedEntry = null;
@@ -30,6 +33,8 @@
   let currIndex = 0;
   let password = ""
   let errormsg = ""
+
+  let loggedInVar;
 
   let menu = false;
   let darkModeOn = false; 
@@ -134,7 +139,7 @@
     if (ref.calendars)
       await updateDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, timestamp: timestamp});
     else {
-      await setDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, name: name, timestamp: timestamp});
+      await setDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, name: name, timestamp: timestamp}, {merge: true});
     }
     console.log("Saved calendars to database");
   }
@@ -144,6 +149,8 @@
   }
 
   function logout() {
+    loggedInVar = false;
+    loggedIn.set(false);
     signOut(auth);
     user = null;
     selectedEntry = null;
@@ -195,10 +202,14 @@
     }
 }
 
-// $: if (darkModeLogin) {darkMode}
-</script>
+onMount (logout);
+$: if ($loggedIn) {
+  loggedInVar = true;
+}
 
-{#if !user || !selectedCalendar}
+  </script>
+
+{#if !user || !loggedInVar || !selectedCalendar}
   <Login darkMode={darkMode}/>
 {:else}
 <div style="flex-grow: 1;" in:fade={{delay:0, duration:400, easing: cubicIn}}

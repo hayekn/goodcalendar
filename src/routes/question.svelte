@@ -11,6 +11,9 @@
   import { onMount } from "svelte";
   import sparkles from "$lib/sparkles.gif";
 
+  import { encryptObject } from '$lib/encryption.js';
+
+
   export let user;
   export let externalEntry = null;
   export let onSaved = () => {};
@@ -58,24 +61,45 @@
 
   async function save(entry) {
     if (locked && !override) return;
+
+    if (!window.sessionEncryptionKey) {
+      console.error("No encryption key available!");
+      return;
+    }
+
     saved = true;
 
     const ref = doc(db, "users", uid, selectedCalendar, entry.key); //prev "entries"
+
+    let dataToSave = {};
     if (entry.period==="day"){
-      await setDoc(ref, { valueDay:value, textDay:text, timestamp:Date.now() }, {merge: true});
+      dataToSave = { valueDay: value, textDay: text, timestamp: Date.now() };
+    } else {
+      dataToSave = { valueNight: value, textNight: text, timestamp: Date.now() };
+    }
+    
+    // ENCRYPT TEXT FIELDS BEFORE SAVING
+    const encryptedData = await encryptObject(
+      dataToSave,
+      ['textDay', 'textNight', 'valueDay', 'valueNight'], // Only encrypt text, leave values unencrypted
+      window.sessionEncryptionKey
+    );
+    
+    await setDoc(ref, encryptedData, {merge: true});
+    
+    console.log("Logged " + entry.key + " at " + entry.period);
+
+
+     // Check if both periods are filled
+    if (entry.period==="day"){
       if (entry.filledNight){
         checkBackTomorrow = "Come back tomorrow!"
       }
     } else {
-      await setDoc(ref, {  valueNight:value, textNight:text, timestamp:Date.now() }, {merge: true});
       if (entry.filledDay){
         checkBackTomorrow = "Come back tomorrow!"
       }
     }
-    console.log("Logged " +entry.key+" at "+entry.period)
-
-    // value = 5;
-    // text = "";
 
     // signals change to calendar via main page
     onSaved();
@@ -147,7 +171,7 @@
         style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}; margin-bottom: 0"
       />
       <textarea bind:value={text} placeholder="Optional notes..." style="margin-top:0"></textarea>
-      <button onclick={() => save(externalEntry)} disabled={locked && !override}>Save ({value.toFixed(1)}/10)</button>
+      <button onclick={() => save(externalEntry)} disabled={locked && !override}>Save ({parseFloat(value).toFixed(1)}/10)</button>
     </div>
   {/if}
 {/if}
