@@ -1,6 +1,6 @@
 <script>
   import { auth, db } from "../firebase.js";
-  import { signInAnonymously, signOut, sendPasswordResetEmail, getAuth } from "firebase/auth";
+  import { signInAnonymously, signOut, sendPasswordResetEmail } from "firebase/auth";
   import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
   import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
   import sparkles from "$lib/sparkles.gif";

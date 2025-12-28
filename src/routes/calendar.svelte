@@ -3,6 +3,7 @@
   import { collection, getDocs } from "firebase/firestore";
   import { onMount } from "svelte";
   import { fade } from 'svelte/transition';
+  import {cubicIn, cubicOut} from 'svelte/easing';
   import sparkles from "$lib/sparkles.gif";
   import "../app.css";
   import { decryptObject } from '$lib/encryption.js';
@@ -61,7 +62,6 @@
         window.sessionEncryptionKey
       );
       data[docSnap.id] = decryptedData;
-      console.log(decryptedData);
     }
 
     const temp = [];
@@ -90,12 +90,13 @@
       }
 
       // when init, select current day
-      if (current){
-          if (selectedInfo?.period)
-            loadedEntry.period = selectedInfo.period
-          else
-            loadedEntry.period = defaultPeriod;
-          handleClick(loadedEntry);
+      if (day===showTo){
+        if (selectedInfo?.period)
+          loadedEntry.period = selectedInfo.period
+        else {
+          loadedEntry.period = defaultPeriod;
+        }
+        handleClick(loadedEntry);
       }
 
       temp.push(loadedEntry);
@@ -140,7 +141,7 @@
   // onMount(loadEntries);
 </script>
 
-{#if (selectedInfo || selectedCalendar)}
+{#if (entries!=[] && selectedCalendar)}
 <div class="month-nav">
   <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">
     ←
@@ -219,7 +220,8 @@
 !((selectedInfo.period==="day" && !selectedInfo.filledDay && selectedInfo.current) ||
 (selectedInfo.period==="night" && !selectedInfo.filledNight && selectedInfo.current))
 }
-  <div class="entry-info">
+  <div class="entry-info" in:fade={{delay:0, duration:200, easing: cubicIn}}
+                          out:fade={{delay:0, duration:200, easing: cubicOut}}>
     <strong>
       {new Date(new Date(selectedInfo.key).setHours(24,0,0,0)).toLocaleDateString("default", 
       {month: "short", day: "numeric"} 

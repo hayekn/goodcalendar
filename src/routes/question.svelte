@@ -10,7 +10,8 @@
   import { doc, setDoc, getDoc } from "firebase/firestore";
   import { onMount } from "svelte";
   import sparkles from "$lib/sparkles.gif";
-
+  import { fade } from 'svelte/transition';
+  import {cubicIn, cubicOut} from 'svelte/easing';
   import { encryptObject } from '$lib/encryption.js';
 
 
@@ -81,7 +82,7 @@
     // ENCRYPT TEXT FIELDS BEFORE SAVING
     const encryptedData = await encryptObject(
       dataToSave,
-      ['textDay', 'textNight', 'valueDay', 'valueNight'], // Only encrypt text, leave values unencrypted
+      ['textDay', 'textNight', 'valueDay', 'valueNight'],
       window.sessionEncryptionKey
     );
     
@@ -101,7 +102,6 @@
       }
     }
 
-    // signals change to calendar via main page
     onSaved();
   }
 
@@ -150,15 +150,11 @@
     <button onclick={reset}>Return</button>
   </div>
 {:else}
+  <div class="parent">
+  <h1 class="title" >Welcome {name}!</h1>
   {#if locked && !override}
-  <br>
-    <div class="parent">
-      <h1 class="title" >Welcome {name}!</h1>
       <h3 style="margin-top: 0; font-style: italic;">{checkBackTomorrow || "Viewing past entries"}</h3>
-    </div>
   {:else}
-    <div class="parent">
-      <h1 class="title" >Welcome {name}!</h1>
       <h3 style="margin-top: 0; font-style: italic;">Rate your {externalEntry.period==="day" ? "day" : "night"}</h3>
       <input
         type="range"
@@ -169,11 +165,16 @@
         disabled={locked && !override}
         class={showGif}
         style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}; margin-bottom: 0"
-      />
-      <textarea bind:value={text} placeholder="Optional notes..." style="margin-top:0"></textarea>
-      <button onclick={() => save(externalEntry)} disabled={locked && !override}>Save ({parseFloat(value).toFixed(1)}/10)</button>
-    </div>
+      in:fade={{delay:0, duration:100, easing: cubicIn}}
+      out:fade={{delay:0, duration:100, easing: cubicOut}}/>
+      <textarea bind:value={text} placeholder="Optional notes..." style="margin-top:0"
+      in:fade={{delay:0, duration:100, easing: cubicIn}}
+      out:fade={{delay:0, duration:100, easing: cubicOut}}></textarea>
+      <button onclick={() => save(externalEntry)} disabled={locked && !override}
+      in:fade={{delay:0, duration:100, easing: cubicIn}}
+      out:fade={{delay:0, duration:100, easing: cubicOut}}>Save ({parseFloat(value).toFixed(1)}/10)</button>
   {/if}
+  </div>
 {/if}
 {/if}
 

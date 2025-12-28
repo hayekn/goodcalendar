@@ -203,6 +203,7 @@
 }
 
 onMount (logout);
+
 $: if ($loggedIn) {
   loggedInVar = true;
 }
