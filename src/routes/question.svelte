@@ -29,7 +29,6 @@
     return n.toString().padStart(2, '0');
   }
 
-
   let uid = user.uid;
   if (user.email) {
     const base = user.email.split("@")[0];
@@ -37,7 +36,6 @@
   } else {
     name = "Temp";
   }
-
 
   let key = `${year}-${pad(month+1)}-${pad(day)}`;
   let value = 5;
@@ -69,17 +67,15 @@
     }
 
     saved = true;
-
     const ref = doc(db, "users", uid, selectedCalendar, entry.key); //prev "entries"
-
     let dataToSave = {};
+
     if (entry.period==="day"){
       dataToSave = { valueDay: value, textDay: text, timestamp: Date.now() };
     } else {
       dataToSave = { valueNight: value, textNight: text, timestamp: Date.now() };
     }
     
-    // ENCRYPT TEXT FIELDS BEFORE SAVING
     const encryptedData = await encryptObject(
       dataToSave,
       ['textDay', 'textNight', 'valueDay', 'valueNight'],
@@ -87,11 +83,8 @@
     );
     
     await setDoc(ref, encryptedData, {merge: true});
-    
     console.log("Logged " + entry.key + " at " + entry.period);
 
-
-     // Check if both periods are filled
     if (entry.period==="day"){
       if (entry.filledNight){
         checkBackTomorrow = "Come back tomorrow!"
@@ -125,7 +118,6 @@
       text = (externalEntry.period==="day" ? externalEntry.textDay : externalEntry.textNight)
       value = (externalEntry.period==="day" ? externalEntry.valueDay : externalEntry.valueNight) || 5
     }
-    
   }
 
   $: if (invert) {showGif = value <= 0 ? "celebrate" : "";}
@@ -134,50 +126,53 @@
 </script>
 
 
-<!-- wait till external entry is loaded from calendar, then show -->
+<!-- wait till external entry is loaded from calendar.svelte, then reveal (so elements load together)-->
 {#if externalEntry}
-{#if saved}
-  <div class="overlay">
-    {#if (externalEntry.period==="day" && !externalEntry.filledNight)}
-    <h3>Entry logged!</h3>
-    {:else if (externalEntry.period==="night" && !externalEntry.filledDay)}
-    <h3 style="margin: 0px;">Entry logged!</h3>
-    <h4>You can still log your day.</h4>
-    {:else}
-    <h3 style="margin: 0px;">Entry logged!</h3>
-    <h4>Come back tomorrow!</h4>
-    {/if}
-    <button onclick={reset}>Return</button>
-  </div>
-{:else}
-  <div class="parent">
-  <h1 class="title" >Welcome {name}!</h1>
-  {#if locked && !override}
-      <h3 style="margin-top: 0; font-style: italic;">{checkBackTomorrow || "Viewing past entries"}</h3>
+  {#if saved}
+    <div class="overlay">
+      {#if (externalEntry.period==="day" && !externalEntry.filledNight)}
+      <h3>Entry logged!</h3>
+      {:else if (externalEntry.period==="night" && !externalEntry.filledDay)}
+      <h3 style="margin: 0px;">Entry logged!</h3>
+      <h4>You can still log your day.</h4>
+      {:else}
+      <h3 style="margin: 0px;">Entry logged!</h3>
+      <h4>Come back tomorrow!</h4>
+      {/if}
+      <button onclick={reset}>Return</button>
+    </div>
   {:else}
+    <div class="parent">
+    <h1 class="title" >Welcome {name}!</h1>
+    {#if locked && !override}
+      <h3 style="margin-top: 0; font-style: italic;">{checkBackTomorrow || "Viewing past entries"}</h3>
+    {:else}
       <h3 style="margin-top: 0; font-style: italic;">Rate your {externalEntry.period==="day" ? "day" : "night"}</h3>
-      <input
-        type="range"
-        min="0"
-        max="10"
-        step="0.1"
-        bind:value={value}
-        disabled={locked && !override}
-        class={showGif}
-        style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}; margin-bottom: 0"
-      in:fade={{delay:0, duration:100, easing: cubicIn}}
-      out:fade={{delay:0, duration:100, easing: cubicOut}}/>
-      <textarea bind:value={text} placeholder="Optional notes..." style="margin-top:0"
-      in:fade={{delay:0, duration:100, easing: cubicIn}}
-      out:fade={{delay:0, duration:100, easing: cubicOut}}></textarea>
-      <button onclick={() => save(externalEntry)} disabled={locked && !override}
-      in:fade={{delay:0, duration:100, easing: cubicIn}}
-      out:fade={{delay:0, duration:100, easing: cubicOut}}>Save ({parseFloat(value).toFixed(1)}/10)</button>
+      {#key `${externalEntry.key}`}
+        <input
+          type="range"
+          min="0"
+          max="10"
+          step="0.1"
+          bind:value={value}
+          disabled={locked && !override}
+          class={showGif}
+          style="--fill-percentage: {getFillPercentage()}%; --slider-color: {sliderColor}; margin-bottom: 0"
+        in:fade={{delay:0, duration:100, easing: cubicIn}}
+        out:fade={{delay:0, duration:100, easing: cubicOut}}/>
+        <textarea bind:value={text} placeholder="Optional notes..." style="margin-top:0"
+        in:fade={{delay:0, duration:100, easing: cubicIn}}
+        out:fade={{delay:0, duration:100, easing: cubicOut}}></textarea>
+        <button onclick={() => save(externalEntry)} disabled={locked && !override}
+        in:fade={{delay:0, duration:100, easing: cubicIn}}
+        out:fade={{delay:0, duration:100, easing: cubicOut}}>Save ({parseFloat(value).toFixed(1)}/10)</button>
+      {/key}
   {/if}
-  </div>
-{/if}
+    </div>
+  {/if}
 {/if}
 
+<!-- hidden override oooo -->
 <button class="floating-button" style="opacity: 0; left: 2%;"
 ondblclick={() => {console.log("Activated override!"); override=!override}}></button>
 

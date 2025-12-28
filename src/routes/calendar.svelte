@@ -89,7 +89,7 @@
         current: current
       }
 
-      // when init, select current day
+      // select latest day at appropiate time
       if (day===showTo){
         if (selectedInfo?.period)
           loadedEntry.period = selectedInfo.period
@@ -141,87 +141,88 @@
   // onMount(loadEntries);
 </script>
 
+<!-- sync loading of navigation buttons -->
 {#if (entries!=[] && selectedCalendar)}
-<div class="month-nav">
-  <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">
-    ←
-  </button>
-  <p>{currentMonthLabel}</p>
-  <button
-    class="nav-btn"
-    on:click={nextMonth}
-    aria-label="Next month"
-    disabled={
-      currentDate.getFullYear() === new Date().getFullYear() &&
-      currentDate.getMonth() === new Date().getMonth()
-    }
-  >
-    →
-  </button>
-</div>
+  <div class="month-nav">
+    <button class="nav-btn" on:click={prevMonth} aria-label="Previous month">
+      ←
+    </button>
+    <p>{currentMonthLabel}</p>
+    <button
+      class="nav-btn"
+      on:click={nextMonth}
+      aria-label="Next month"
+      disabled={
+        currentDate.getFullYear() === new Date().getFullYear() &&
+        currentDate.getMonth() === new Date().getMonth()
+      }
+    >
+      →
+    </button>
+  </div>
 {/if}
 
-  <div class="calendar">
-    {#each entries as e}
-      <div
-        class="day"
-        style={(e.current ? "border: 1.5px solid var(--V-lighter-text);" : "")+
-              (
+<!-- main calendar -->
+<div class="calendar">
+  {#each entries as e}
+    <div
+      class="day"
+      style={(e.current ? "border: 1.5px solid var(--V-lighter-text);" : "")+
+            (
               (selectedInfo != null && selectedInfo.key===e.key && selectedInfo.period === "day") 
               ? "border-top: 2.5px solid #6BCBFF;" : selectedInfo != null && selectedInfo.key===e.key 
               ? "border-bottom: 2.5px solid #0077BA;" : ""
-              )
-              }
-      >
+            )
+            }>
 
-        <div class="day-number">{e.day}</div>
+      <div class="day-number">{e.day}</div>
 
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          class="day-half top-half"
-          style={
-          ( (e.valueDay != null) ?
-            (!invert && e.valueDay==10)
-            ? `background: url('${sparkles}'); background-size: cover;`
-            : (invert && e.valueDay==0) ? `background: url('${sparkles}'); background-size: cover;`
-            : `background-color: ${valueToColor((e.valueDay!=null && !invert) ? e.valueDay : 
-            (e.valueDay != null) ? 10 - e.valueDay : null )};`
-            : ''
-          ) +
-            'transition: background-color .3s ease-in-out'
-          }
-          on:click={() => handleClick({ ...e, period: 'day'})}
-        ></div>
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          class="day-half bottom-half"
-          style={
-          ( (e.valueNight != null) ?
-            (!invert && e.valueNight==10)
-            ? `background: url('${sparkles}'); background-size: cover;`
-            : (invert && e.valueNight==0) ? `background: url('${sparkles}'); background-size: cover;`
-            : `background-color: ${valueToColor((e.valueNight!=null && !invert) ? e.valueNight : 
-            (e.valueNight != null) ? 10 - e.valueNight : null )};`
-            : ''
-          ) +
-            'transition: background-color .3s ease-in-out'
-          }
-          on:click={() => handleClick({ ...e, period: 'night' })}
-        ></div>
-      </div>
-    {/each}
-  </div>
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        class="day-half top-half"
+        style={
+        ( (e.valueDay != null) ?
+          (!invert && e.valueDay==10)
+          ? `background: url('${sparkles}'); background-size: cover;`
+          : (invert && e.valueDay==0) ? `background: url('${sparkles}'); background-size: cover;`
+          : `background-color: ${valueToColor((e.valueDay!=null && !invert) ? e.valueDay : 
+          (e.valueDay != null) ? 10 - e.valueDay : null )};`
+          : ''
+        ) +
+          'transition: background-color .3s ease-in-out'
+        }
+        on:click={() => handleClick({ ...e, period: 'day'})}
+      ></div>
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        class="day-half bottom-half"
+        style={
+        ( (e.valueNight != null) ?
+          (!invert && e.valueNight==10)
+          ? `background: url('${sparkles}'); background-size: cover;`
+          : (invert && e.valueNight==0) ? `background: url('${sparkles}'); background-size: cover;`
+          : `background-color: ${valueToColor((e.valueNight!=null && !invert) ? e.valueNight : 
+          (e.valueNight != null) ? 10 - e.valueNight : null )};`
+          : ''
+        ) +
+          'transition: background-color .3s ease-in-out'
+        }
+        on:click={() => handleClick({ ...e, period: 'night' })}
+      ></div>
+    </div>
+  {/each}
+</div>
   
 
-<!-- (e.valueNight!=null && !invert) ? e.valueNight : e.valueNight ? 10 - e.valueNight : null -->
+<!-- info boxes -->
 {#if selectedInfo && 
 !((selectedInfo.period==="day" && !selectedInfo.filledDay && selectedInfo.current) ||
 (selectedInfo.period==="night" && !selectedInfo.filledNight && selectedInfo.current))
 }
-  <div class="entry-info" in:fade={{delay:0, duration:200, easing: cubicIn}}
-                          out:fade={{delay:0, duration:200, easing: cubicOut}}>
+  <div class="entry-info" in:fade={{delay:0, duration:100, easing: cubicIn}}
+                          out:fade={{delay:0, duration:100, easing: cubicOut}}>
     <strong>
       {new Date(new Date(selectedInfo.key).setHours(24,0,0,0)).toLocaleDateString("default", 
       {month: "short", day: "numeric"} 

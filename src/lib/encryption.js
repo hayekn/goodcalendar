@@ -1,16 +1,11 @@
-// encryption.js - Client-side encryption utility for Firebase
-// This uses the Web Crypto API for strong encryption (built into browsers)
-// No external imports needed - all functions are native Web APIs
-
 /**
  * Derives encryption key from password + uid
  * @param {string} password - User's password
- * @param {string} uid - User's Firebase UID (used as salt)
+ * @param {string} uid - User's Firebase UID
  * @returns {Promise<CryptoKey>} Encryption key
  */
 async function deriveKeyFromPassword(password, uid) {
   const enc = new TextEncoder();
-  
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     enc.encode(password),
@@ -43,7 +38,6 @@ async function deriveKeyFromPassword(password, uid) {
 async function deriveKeyFromSecurityAnswer(answer, uid) {
   const enc = new TextEncoder();
   const normalized = answer.toLowerCase().trim();
-  
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     enc.encode(normalized),
@@ -112,7 +106,7 @@ async function importMasterKey(base64Key) {
  */
 async function encrypt(plaintext, key) {
   const enc = new TextEncoder();
-  const iv = crypto.getRandomValues(new Uint8Array(12)); // GCM standard IV size
+  const iv = crypto.getRandomValues(new Uint8Array(12)); // GCM standard iv size
   
   const ciphertext = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
@@ -120,12 +114,12 @@ async function encrypt(plaintext, key) {
     enc.encode(plaintext)
   );
   
-  // Combine IV and ciphertext
+  // iv and ciphertext
   const combined = new Uint8Array(iv.length + ciphertext.byteLength);
   combined.set(iv);
   combined.set(new Uint8Array(ciphertext), iv.length);
   
-  // Return as base64
+  // return as base64
   return btoa(String.fromCharCode(...combined));
 }
 
@@ -152,7 +146,7 @@ async function decrypt(encryptedData, key) {
 }
 
 /**
- * Wraps (encrypts) the master key with a KEK (Key Encryption Key)
+ * Wraps the master key with a KEK
  * @param {CryptoKey} masterKey - Master key to wrap
  * @param {CryptoKey} kek - Key encryption key
  * @returns {Promise<string>} Encrypted master key (base64)
@@ -163,7 +157,7 @@ async function wrapMasterKey(masterKey, kek) {
 }
 
 /**
- * Unwraps (decrypts) the master key with a KEK
+ * Unwraps the master key with a KEK
  * @param {string} wrappedKey - Encrypted master key
  * @param {CryptoKey} kek - Key encryption key
  * @returns {Promise<CryptoKey>} Decrypted master key
@@ -186,7 +180,6 @@ async function unwrapMasterKey(wrappedKey, kek) {
  */
 async function encryptObject(obj, fields, key) {
   const result = { ...obj };
-  
   for (const field of fields) {
     if (obj[field] != null) {
       result[field] = await encrypt(String(obj[field]), key);
@@ -220,7 +213,6 @@ async function decryptObject(obj, fields, key) {
   return result;
 }
 
-// Export all functions
 export { 
   deriveKeyFromPassword,
   deriveKeyFromSecurityAnswer,
