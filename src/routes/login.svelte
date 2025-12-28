@@ -351,7 +351,7 @@ function errorParser(error){
 <!-- privacy pop-up -->
 {#if privacyNotice}
 <div class="overlay" style="z-index: 1000;">
-  <h2>Privacy Notice</h2>
+  <h3>Privacy Notice</h3>
   <p style="font-size: 10pt; width: clamp(320px, 33vw, 33vw); text-align:justify">All personal data is locally encrypted using 256-bit AES-GCM before being sent to to Google Firebase. Importantly, I cannot see it, and neither can they!
   <br><br>For accounts that are setup without an email, your data will be unrecoverable if you forget your password. (Password resetting is not possible in this case.) For accounts that <i>are</i> setup with email, you will be asked to answer a security question on signup, which enables data recovery.
   <br><br>The diagram below details Good Calendar's mechanism for securing and recovering data. Elements in <span style="color: #d65c5c">red</span> are viewable by myself and the Firebase server and, together, cannot decrypt your data.
