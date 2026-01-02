@@ -66,6 +66,7 @@
 
         console.log("Created temporary user.")
 
+        error = "";
         showSecuritySetup = true;
 
         window.addEventListener("beforeunload", function(e) {
@@ -84,9 +85,8 @@
         const wrappedWithPassword = await wrapMasterKey(masterKey, passwordKEK);
 
         await setDoc(doc(db, 'users', pendingUserId), {
-        wrappedMasterKey: wrappedWithPassword,
-        encryptionEnabled: true,
-        timestamp: Date.now()
+          wrappedMasterKey: wrappedWithPassword,
+          timestamp: Date.now()
         }, { merge: true }); 
     
         window.sessionEncryptionKey = masterKey;
@@ -120,7 +120,6 @@
         wrappedMasterKey: wrappedWithPassword,
         wrappedRecoveryKey: wrappedWithSecurity,
         securityQuestion: securityQuestion,
-        encryptionEnabled: true,
         timestamp: Date.now()
       }, { merge: true });
       
@@ -193,9 +192,8 @@
             const wrappedWithPassword = await wrapMasterKey(masterKey, passwordKEK);
 
             await setDoc(doc(db, 'users', userId), {
-            wrappedMasterKey: wrappedWithPassword,
-            encryptionEnabled: true,
-            timestamp: Date.now()
+              wrappedMasterKey: wrappedWithPassword,
+              timestamp: Date.now()
             }, { merge: true }); 
         
             window.sessionEncryptionKey = masterKey;

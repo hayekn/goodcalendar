@@ -34,16 +34,11 @@
   let menu = false;
   let darkModeOn = false; 
 
-  onAuthStateChanged(auth, (u) => {
-    loadUserData(u);
-    user = u;
-  });
-
   async function invertColors() {
     if (!user) return;
     invert = !invert;
-    const ref = doc(db, "users", user.uid);
-    await setDoc(ref, {colorPreference: invert, timestamp: Date.now()}, { merge: true });
+    calendars[selectedCalendar]["colorPreference"] = invert;
+    updateCalendars();
     console.log("Saved user profile invert="+invert)
   }
 
@@ -75,11 +70,11 @@
     if (renamedCal===""){
       errormsg = "New name cannot be empty!";
     }
-    else if (Object.values(calendars).includes(renamedCal)){
+    else if (Object.values(calendars).map(c => c.name).includes(renamedCal)){
       errormsg = "New name cannot be a duplicate!";
     } 
     else {
-      calendars[selectedCalendar]=renamedCal;
+      calendars[selectedCalendar]["name"] = renamedCal;
       updateCalendars();
 
       renamedCal="";
@@ -100,7 +95,6 @@
         selectedCalendar = Object.keys(calendars).sort()[0];
 
         updateCalendars();
-
         password = ""
         errormsg = ""
         overlaySelector = "";
@@ -117,7 +111,7 @@
       errormsg = "New name cannot be a duplicate!";
     } else {
       const timestamp = Date.now().toString();
-      calendars[timestamp] = newCal;
+      calendars[timestamp] = {"name": newCal, "colorPreference": false};
       calendars = { ...calendars };
       selectedCalendar = timestamp;
       updateCalendars();
@@ -132,14 +126,23 @@
     if (!user) return;
     const timestamp = Date.now()
     const ref = doc(db, "users", user.uid);
-    const name = (user.email ? user.email.replace("@tracker.app", "") : "anonymous"+timestamp.toString());
+    const snap = await getDoc(ref);
+    const name = 
+    (
+      user.email ? 
+      user.email.split("@")[0].charAt(0).toUpperCase() + user.email.split("@")[0].slice(1) 
+      : "anonymous"+timestamp.toString()
+    );
+    invert = calendars[selectedCalendar]["colorPreference"];
 
-    if (ref.calendars)
+    if (snap.data().calendars != null){
       await updateDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, timestamp: timestamp});
+      console.log("Updated calendars as follows:\n"+JSON.stringify(calendars)+"\n"+"Selected: "+selectedCalendar);
+    }
     else {
       await setDoc(ref, {calendars: calendars, selectedCalendar: selectedCalendar, name: name, timestamp: timestamp}, {merge: true});
+      console.log("Initialized calendars as follows:\n"+JSON.stringify(calendars)+"\n"+"Selected: "+selectedCalendar);
     }
-    console.log("Saved calendars to database");
   }
 
   function handleSaved() {
@@ -174,25 +177,25 @@
       }
       else{
         calendars = {};
+        invert = false;
         const timestamp = Date.now().toString();
-        calendars[timestamp] = "Main";
+
+        calendars[timestamp] = {"name": "Main", "colorPreference": invert};
         selectedCalendar = timestamp;
         await updateCalendars();
         console.log("Initialized user calendars");
       }
-      if (userData.colorPreference){
-        invert = userData.colorPreference;
-        console.log("Loaded user invert="+invert);
-      } else{
-        invert = false;
-        console.log("Initialized user invert="+invert);
-      }
+      if (userData.selectedCalendar){
+        invert = userData.calendars[userData.selectedCalendar]["colorPreference"]
+        console.log("Loaded user invert to "+invert);
+      } 
 
     } else{
-      invert = false;
       calendars = {};
+      invert = false;
       const timestamp = Date.now().toString();
-      calendars[timestamp] = "Main";
+
+      calendars[timestamp] = {"name": "Main", "colorPreference": invert};
       selectedCalendar = timestamp;
       await updateCalendars();
 
@@ -203,10 +206,16 @@
   onMount (logout);
 
   $: if ($loggedIn) {
+    onAuthStateChanged(auth, (u) => {
+      loadUserData(u);
+      user = u;
+    });
     loggedInVar = true;
   }
   </script>
 
+
+{#key `${user}`}
 {#if !user || !loggedInVar || !selectedCalendar}
   <Login darkMode={darkMode}/>
 {:else}
@@ -236,7 +245,7 @@
     <div style="order: 1; flex-wrap: wrap; gap:.5rem;display: flex">
       <button on:click={() => {menu=!menu}}
       style="padding: .4rem inherit; border: 2px dashed #339FFF;">
-        <b>{calendars[selectedCalendar]}</b>
+        <b>{calendars[selectedCalendar]["name"]}</b>
       </button>
       {#if menu}
         <div class="overlay">
@@ -244,7 +253,7 @@
           <span>
           {#each Object.keys(calendars).sort() as id}
             <button on:click={() => {selectedCalendar=id; updateCalendars()}}
-            style={(selectedCalendar===id ? "border: 2px dashed #339FFF;" : "border: 2px dashed #ccc;")+("margin: .5rem; margin-bottom: 0; font-size: 1.1rem")}>{calendars[id]}</button>
+            style={(selectedCalendar===id ? "border: 2px dashed #339FFF;" : "border: 2px dashed #ccc;")+("margin: .5rem; margin-bottom: 0; font-size: 1.1rem")}>{calendars[id]["name"]}</button>
           {/each}
           </span><br><br>
           <span style="margin-bottom: .5rem; flex-wrap: wrap; gap:.5rem;display: flex;">
@@ -257,7 +266,7 @@
       {/if}
       {#if overlaySelector==="rename"}
         <div class="overlay">
-          <input type="text" class="login_input" bind:value={renamedCal} placeholder="Renaming {calendars[selectedCalendar]}"><br>
+          <input type="text" class="login_input" bind:value={renamedCal} placeholder="Renaming {calendars[selectedCalendar]["name"]}"><br>
           <span><button on:click={() => {overlaySelector=""; renamedCal=""}}>Back</button>
           <button on:click={renameCalendar}>Confirm</button></span>
           {#if errormsg!=""}
@@ -267,7 +276,7 @@
       {/if}
       {#if overlaySelector==="delete"}
         <div class="overlay">
-          <h3 style="margin-bottom: 0;">Delete {calendars[selectedCalendar]}?</h3>
+          <h3 style="margin-bottom: 0;">Delete {calendars[selectedCalendar]["name"]}?</h3>
           <p><i>This action cannot be undone.</i></p><br><br>
           <input type="password" class="login_input" bind:value={password} placeholder="Re-enter Password"><br>
           <span><button on:click={() => {overlaySelector=""; password=""; errormsg=""}}>Back</button>
@@ -307,3 +316,4 @@
   {/if}
 </div>
 {/if}
+{/key}
